@@ -39,10 +39,10 @@
     //"mounts": [
 	//	"source=/mnt/wslg,target=/mnt/wslg,type=bind,consistency=cached"
     //],
-	//"containerEnv": {
-	//	"PULSE_SERVER": "/mnt/wslg/PulseServer"
-	//},
-
+	"containerEnv": {
+		"DISPLAY": "host.docker.internal:0",
+		"PULSE_SERVER": "tcp:host.docker.internal"
+	},
 
 	////////////////////////////////////
 	// MacOS Setup (X11)
