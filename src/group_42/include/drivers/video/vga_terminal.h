@@ -23,6 +23,7 @@ enum vga_color {
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 #define VGA_MEMORY 0xB8000
+
 /// Initializes to print to VGA terminal
 void vga_terminal_initialise(void);
 
@@ -38,7 +39,9 @@ void vga_terminal_setcolor(uint8_t color);
 /// @param y y-coordinate
 void vga_terminal_putentryat(char c, uint8_t color, size_t x, size_t y);
 
-
+/// Put a char to the terminal
+/// @param c char to put
+void vga_terminal_putchar(char c);
 /// Writes data to terminal
 /// @param data
 /// @param size
@@ -47,5 +50,8 @@ void vga_terminal_write(const char* data, size_t size);
 /// Writes data to terminal
 /// @param data
 void vga_terminal_writestring(const char* data);
+
+/// Scrolls the terminal
+void vga_terminal_scroll(void);
 
 #define vga_entry_color(fg, bg) (fg | bg << 3)
