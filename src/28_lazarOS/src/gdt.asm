@@ -1,14 +1,29 @@
 ; gdt.asm
 ;
-; TODO: Export gdt_load and gdt_reload_segments with 'global'
-;
-; TODO: Implement gdt_load(gdt_descriptor_t *ptr)
-;   Hint: argument is at [esp+4] (cdecl), use lgdt [eax]
-;
-; TODO: Implement gdt_reload_segments()
-;   Hint: CS must be reloaded with a far jump to selector 0x08
-;   Hint: Then set DS/ES/FS/GS/SS to 0x10
+; Low-level GDT routines called from C.
+
+global gdt_load
+global gdt_reload_segments
 
 section .text
 bits 32
+
+; void gdt_load(gdt_descriptor_t *descriptor)
+gdt_load:
+	mov eax, [esp + 4]
+	lgdt [eax]
+	ret
+
+; void gdt_reload_segments(void)
+gdt_reload_segments:
+	jmp 0x08:.reload_cs
+
+.reload_cs:
+	mov ax, 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+	ret
 

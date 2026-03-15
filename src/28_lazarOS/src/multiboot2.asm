@@ -9,6 +9,14 @@ header_start:
     dd header_end - header_start 	                                ; Header length
     dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header_start)) ; Checksum
 
+align 8
+console_flags_tag_start:
+    dw 4                                              ; type: console flags
+    dw 0                                              ; flags
+    dd console_flags_tag_end - console_flags_tag_start; size
+    dd 0x3                                            ; require console + support EGA text mode
+console_flags_tag_end:
+
 ;align 8
 ;framebuffer_tag_start:
 ;    dw 5                                              ; type

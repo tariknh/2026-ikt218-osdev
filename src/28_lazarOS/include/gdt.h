@@ -3,14 +3,22 @@
 
 #include <libc/stdint.h>
 
-// TODO: Define the GDT entry struct (8 bytes, packed)
-// Hint: it needs fields for limit_low, base_low, base_middle,
-//       access, granularity, base_high
+typedef struct {
+	uint16_t limit_low;
+	uint16_t base_low;
+	uint8_t  base_middle;
+	uint8_t  access;
+	uint8_t  granularity;
+	uint8_t  base_high;
+} __attribute__((packed)) gdt_entry_t;
 
-// TODO: Define the GDT descriptor struct (6 bytes, packed)
-// Hint: limit (uint16_t) and base (uint32_t)
+typedef struct {
+	uint16_t limit;
+	uint32_t base;
+} __attribute__((packed)) gdt_descriptor_t;
 
-// TODO: Declare gdt_init()
-// TODO: Extern declare gdt_load() and gdt_reload_segments() from gdt.asm
+void gdt_init(void);
+extern void gdt_load(gdt_descriptor_t *descriptor);
+extern void gdt_reload_segments(void);
 
 #endif /* GDT_H */

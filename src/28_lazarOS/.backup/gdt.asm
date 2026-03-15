@@ -25,11 +25,9 @@ gdt_load:
 ;   The far jump below encodes:  jmp  0x08 : .reload_cs
 ;     0x08 = GDT_SELECTOR_CODE (index 1, TI=0, RPL=0)
 gdt_reload_segments:
-    jmp  0x08:.reload_cs    ; far jump flushes the instruction pipeline
-                            ; and reloads CS with the code segment selector
+    jmp  0x08:.reload_cs    
 .reload_cs:
-    ; Reload all data-segment registers with the data segment selector
-    ;   0x10 = GDT_SELECTOR_DATA (index 2, TI=0, RPL=0)
+    
     mov  ax, 0x10
     mov  ds, ax
     mov  es, ax
