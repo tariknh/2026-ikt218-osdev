@@ -57,9 +57,12 @@ set(CMAKE_ASM_NASM_COMPILE_OBJECT
 set(OS_KERNEL_LINKER "${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${OS_ARCH_TARGET}/linker.ld")
 
 # Add executable target for the kernel
-add_executable(uiaos-kernel 
-	# src/multiboot2.asm # TODO: Add multiboot2 support
-    src/kernel.c
+add_executable(uiaos-kernel
+    src/multiboot2.asm          # Multiboot2 header + _start entry point
+    src/kernel.c                # Kernel main
+    src/gdt.c                   # GDT initialisation (C)
+    src/arch/i386/gdt.asm       # lgdt + segment-register reload (ASM)
+    src/terminal.c              # VGA text-mode terminal + printf
 )
 
 # Include directories for the kernel target
