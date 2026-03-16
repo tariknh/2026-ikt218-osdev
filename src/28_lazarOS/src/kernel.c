@@ -1,5 +1,7 @@
 #include <gdt.h>
 #include <idt.h>
+#include <pic.h>
+#include <libc/stdint.h>
 
 
 /* ───────────────────────────────────────────────────────────────
@@ -21,10 +23,6 @@
 
 static volatile unsigned short *vga = (volatile unsigned short *)VGA_ADDRESS;
 
-static inline void outb(unsigned short port, unsigned char value)
-{
-    __asm__ __volatile__("outb %0, %1" : : "a"(value), "Nd"(port));
-}
 
 static void serial_init(void)
 {
@@ -134,9 +132,18 @@ void main(void)
     gdt_init();
     serial_write("kernel: gdt loaded\n");
 
+
+    pic_remap();
+    pic_mask_all();
+
     //setup IDT
     idt_init();
     serial_write("kernel: idt loaded\n");
+    __asm__ volatile("int $0x0");
+    __asm__ volatile("int $0x3");
+    __asm__ volatile("int $0x6");
+
+    
 
     /* 2. Initialise the text-mode terminal */
     terminal_clear();
