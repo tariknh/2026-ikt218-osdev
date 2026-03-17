@@ -10,13 +10,14 @@ void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
     idt_entry_t* descriptor = &idt[vector];
 
     descriptor->isr_low        = (uint32_t)isr & 0xFFFF;
-    descriptor->kernel_cs      = 0x08; // this value can be whatever offset your kernel code selector is in your GDT
+    descriptor->kernel_cs      = 0x08; 
     descriptor->attributes     = flags;
     descriptor->isr_high       = (uint32_t)isr >> 16;
     descriptor->reserved       = 0;
 }
 
 extern void* isr_stub_table[];
+extern void* irq_stub_table[];
 
 void idt_init() {
     idtr.base = (uint32_t)&idt[0];
@@ -24,6 +25,11 @@ void idt_init() {
 
     for (uint8_t vector = 0; vector < 32; vector++) {
         idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
+        vectors[vector] = true;
+    }
+
+    for (uint8_t vector = 32; vector < 48; vector++) {
+        idt_set_descriptor(vector, irq_stub_table[vector - 32], 0x8E);
         vectors[vector] = true;
     }
 

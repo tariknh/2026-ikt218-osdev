@@ -66,6 +66,7 @@ add_executable(uiaos-kernel
 	src/isr.asm
 	src/isr.c
 	src/pic.c
+	src/keyboard.c
 	
 )
 

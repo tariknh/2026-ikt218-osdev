@@ -6,7 +6,6 @@ isr_stub_%+%1:
     add esp, 4 ; Skip error code
     iret 
 %endmacro
-; if writing for 64-bit, use iretq instead
 %macro isr_no_err_stub 1
 isr_stub_%+%1:
     push %1 
@@ -14,6 +13,40 @@ isr_stub_%+%1:
     add esp, 4
     iret
 %endmacro
+
+%macro irq_stub 1
+irq_stub_%+%1:
+    push %1
+    call irq_handler
+    add esp, 4
+    iret
+%endmacro
+
+extern irq_handler
+irq_stub 32
+irq_stub 33
+irq_stub 34
+irq_stub 35
+irq_stub 36
+irq_stub 37
+irq_stub 38
+irq_stub 39
+irq_stub 40
+irq_stub 41
+irq_stub 42
+irq_stub 43
+irq_stub 44
+irq_stub 45
+irq_stub 46
+irq_stub 47
+
+global irq_stub_table
+irq_stub_table:
+%assign i 32
+%rep    16
+    dd irq_stub_%+i ; use DQ instead if targeting 64-bit
+%assign i i+1
+%endrep
 
 extern exception_handler
 isr_no_err_stub 0

@@ -134,14 +134,15 @@ void main(void)
 
 
     pic_remap();
-    pic_mask_all();
+    //pic_mask_all();
+
+    outb(0x21, 0xFC); // Enable IRQ0 (timer) and IRQ1 (keyboard)
+    outb(0xA1, 0xFF); // Mask everything else
 
     //setup IDT
     idt_init();
     serial_write("kernel: idt loaded\n");
-    __asm__ volatile("int $0x0");
-    __asm__ volatile("int $0x3");
-    __asm__ volatile("int $0x6");
+
 
     
 
@@ -154,5 +155,6 @@ void main(void)
 
     /* Halt – the kernel has nothing more to do */
     while (1) {
+        __asm__ volatile("hlt");
     }
 }
