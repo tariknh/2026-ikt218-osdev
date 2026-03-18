@@ -2,6 +2,8 @@
 #include <idt.h>
 #include <pic.h>
 #include <libc/stdint.h>
+#include <memory.h>
+#include <keyboard.h>
 
 
 /* ───────────────────────────────────────────────────────────────
@@ -20,6 +22,12 @@
 
 /* Colour byte: white (0xF) text on black (0x0) background */
 #define VGA_COLOR    0x0F
+
+extern uint32_t end;
+
+
+
+
 
 static volatile unsigned short *vga = (volatile unsigned short *)VGA_ADDRESS;
 
@@ -142,6 +150,10 @@ void main(void)
     //setup IDT
     idt_init();
     serial_write("kernel: idt loaded\n");
+
+    init_kernel_memory(&end); //assign the end of the kernel as the start of the heap
+    init_paging();
+    print_memory_layout();
 
 
     
