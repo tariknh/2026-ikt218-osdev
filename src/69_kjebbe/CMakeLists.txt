@@ -69,10 +69,14 @@ add_executable(uiaos-kernel
     src/lib/irq.c
     src/lib/keyboard.c
     src/libc/stdio.c
+    src/lib/memory/malloc.c
+    src/lib/memory/memory.c
+    src/lib/memory/memutils.c
+    src/lib/pit.c
 )
 
 # Include directories for the kernel target
-target_include_directories(uiaos-kernel PUBLIC include)
+target_include_directories(uiaos-kernel PUBLIC include include/libc)
 
 
 # Specify compile options for C and C++
