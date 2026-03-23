@@ -40,21 +40,28 @@ _start:
 
     call main ; Jump main function
 
-.hang:
-    hlt
+; hlt loop to avoid the Operating System immediately exiting
+.hang: 
+    hlt ; hlt instruction makes CPU wait for an interrupt before continuing
     jmp .hang
 
+; Function is called from C with (uint32_t)&gdt_pointer as argument
 gdt_flush:
-	mov eax, [esp+4]
-	lgdt [eax]
+	mov eax, [esp+4] ; Moves the GDT pointer from the stack to eax register
+					; esp+4 is used to go past the return memory address 
+					; pushed onto the stack and [] dereferences the 
+					; value at that memory address
+ 
+	lgdt [eax] ; Loads the GDT pointer into the CPU.
 
-	mov ax, 0x10
-	mov ds, ax
+	mov ax, 0x10 ; Datasegment is at the GDT entry 0x10, and is loaded into the ax register
+	mov ds, ax ; loads the address of the data segment GDT entry into all segment registers.
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
-	jmp 0x08:.flush
+	jmp 0x08:.flush ; Uses a jmp instruction to change the code segment to GDT entry 0x08,
+					; .flush immediately returns.
 .flush:
 	ret
 

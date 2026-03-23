@@ -6,11 +6,11 @@
 #include "../include/kernel/pit.h"
 #include "../include/keyboard.h"
 #include "../include/libc/stdbool.h"
+#include "../include/libc/stddef.h"
 #include "../include/libc/stdint.h"
 #include "../include/libc/stdio.h"
 #include "../include/multiboot2.h"
 #include "lib/song/song.h"
-#include "libc/stddef.h"
 
 extern uint32_t
     end; // Defined in arch/i386/linker.ld — marks the end of the kernel image
