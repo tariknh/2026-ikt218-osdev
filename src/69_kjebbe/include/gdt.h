@@ -27,6 +27,7 @@ typedef struct {
   uint32_t base;  // Memory address to the start of the GDT
 } __attribute__((packed)) gdt_ptr_t;
 
+// See the gdt.c file for more information.
 void gdt_init(void);
 
 // Function defined in the multiboot assembly file which loads the

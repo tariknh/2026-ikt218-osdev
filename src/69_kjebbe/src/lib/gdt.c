@@ -16,6 +16,7 @@ static void gdt_set_entry(int index, uint32_t base, uint32_t limit,
   gdt[index].base_high = (base >> 24) & 0xFF;
 }
 
+// Initialises up the global descriptor table and then loads it into the CPU
 void gdt_init(void) {
   // The first GDT entry should always be null
   gdt_set_entry(0, 0, 0, 0, 0);
