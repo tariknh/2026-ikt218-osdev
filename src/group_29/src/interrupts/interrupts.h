@@ -21,5 +21,12 @@ struct idt_gate {
     uint16_t hi_offset;
 } __attribute__((packed));
 
+enum {
+    idt_type_interrupt = 0b1110,
+    idt_type_trap = 0b1111,
+    idt_type_task_gate = 0b0101
+};
+
 void load_idt(struct idt_pointer idt_pointer);
 struct idt_gate create_idt_gate(uint32_t offset, uint16_t selector, uint8_t attributes);
+uint8_t create_idt_attributes(bool present, int8_t ring, uint8_t type);

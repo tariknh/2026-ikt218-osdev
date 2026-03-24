@@ -10,3 +10,12 @@ struct idt_gate create_idt_gate(uint32_t offset, uint16_t selector, uint8_t attr
 
     return a;
 }
+
+uint8_t create_idt_attributes(bool present, int8_t ring, uint8_t type) {
+    uint8_t a = 0;
+    if (present) { a = 0b10000000; }
+    else if (!present) { a = 0; }
+    a = a | (ring << 5);
+    a = a | type;
+    return a;
+}
