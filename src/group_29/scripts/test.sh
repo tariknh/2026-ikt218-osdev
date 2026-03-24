@@ -14,7 +14,8 @@ gcc \
     -I ../include/libc/ \
     -I ../include/unity/ \
     -I ../src/interrupts/ \
-    -o test.out
+    -o test.out \
+    -masm=intel
 ./test.out
 
 rm test.out

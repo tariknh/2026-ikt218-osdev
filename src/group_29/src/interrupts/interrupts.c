@@ -1,8 +1,9 @@
 #include "interrupts.h"
 
 void load_idt(struct idt_pointer idt_pointer) {
-    __asm__ __volatile__ (".intel_syntax noprefix");
-    __asm__ __volatile__ ("lidt %0" : : "m" idt_pointer);
+    // __asm__ __volatile__ (".intel_syntax prefix\r\n");
+    __asm__ __volatile__ ("lidt %0\r\n" : : "m"(idt_pointer));
+    // __asm__ __volatile__ (".att_syntax prefix\r\n");
 }
 
 struct idt_gate create_idt_gate(uint32_t offset, uint16_t selector, uint8_t attributes)
