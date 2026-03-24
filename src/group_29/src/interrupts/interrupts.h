@@ -1,4 +1,5 @@
 #pragma once
+#include "stdint.h"
 
 /** A pointer to the IDT that will be passed to the LIDT instruction. */
 struct idt_pointer {
@@ -13,11 +14,11 @@ struct idt_pointer {
  * \see https://osdev.wiki/wiki/Interrupt_Descriptor_Table#Gate_Descriptor 
  */
 struct idt_gate {
-    uint16_t offset1;
+    uint16_t low_offset;
     uint16_t selector;
     uint8_t RESERVED_DO_NOT_USE;
     uint8_t attributes;
-    uint16_t offset2;
+    uint16_t hi_offset;
 } __attribute__((packed));
 
 void load_idt(struct idt_pointer idt_pointer);
