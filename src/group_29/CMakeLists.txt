@@ -62,6 +62,7 @@ add_executable(uiaos-kernel
     src/kernel.c
 	src/gdt/gdt.c
 	src/interrupts/interrupts.c
+	src/vga_text_mode_interface/vga_text_mode_interface.c
 )
 
 # Include directories for the kernel target
