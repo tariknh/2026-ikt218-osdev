@@ -37,8 +37,6 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     init_idt();
     screen.Print(&screen, "IDT is initilalized", VgaColor(vga_black, vga_white));
 
-    
-
     // Test how the os handels overflow:
     // while(1){screen.Print(&screen, "aaaaaaaaaaaaaaaaaaaaaa", VgaColor(vga_white, vga_black));}
     

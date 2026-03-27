@@ -1,4 +1,5 @@
 #include "interrupts.h"
+#include "../vga_text_mode_interface/vga_text_mode_interface.h"
 
 static struct idt_gate idt[256];
 static struct idt_pointer idtp;
@@ -76,13 +77,29 @@ void pic_remap(int offset1, int offset2) {
 }
 
 void init_idt() {
+    pic_remap(0x20, 0x28);
+
+    // Port 0x21 is the Master PIC data port. 
+    // Bit 1 corresponds to IRQ 1. 0 = Enabled, 1 = Masked.
+    outb(0x21, 0xFD); // 0xFD is 11111101 in binary (only IRQ 1 enabled)
+    // Or more safely: outb(0x21, inb(0x21) & ~(1 << 1));
+
     idtp.offset = idt;
     idtp.size = (256*8)-1;
+    idt[33] = create_idt_gate((uint32_t)keyboard_interrupt_handler, 0x08, create_idt_attributes(true, 0, idt_type_interrupt));
     load_idt(idtp);
+    __asm__ __volatile__ ("sti");
 }
 
 __attribute__((interrupt))
 __attribute__((target("general-regs-only")))
 void keyboard_interrupt_handler(struct interrupt_frame* frame) {
+    keyboard_callback();
+}
 
+// This code is too HEAVY to be inside the keyboard_interupt_handler()
+void keyboard_callback(){
+    struct VgaTextModeInterface screen = NewVgaTextModeInterface();
+    screen.Print(&screen, "Keyboard interrupt run", VgaColor(vga_white, vga_black));
+    outb(0x20, 0x20); // Send EOI
 }

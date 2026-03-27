@@ -43,3 +43,5 @@ static void outb(uint16_t port, uint8_t val);
 static void io_wait();
 void pic_remap(int offset1, int offset2);
 void init_idt();
+void keyboard_interrupt_handler(struct interrupt_frame* frame);
+void keyboard_callback();
