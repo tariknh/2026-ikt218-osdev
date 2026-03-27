@@ -1,8 +1,9 @@
 #include "interrupts.h"
 
-/** Loads the interrupt descriptor table
- * \warning Assumes intel syntax
- */
+static struct idt_gate idt[256];
+static struct idt_pointer idtp;
+
+/** Loads the interrupt descriptor table */
 void load_idt(struct idt_pointer idt_pointer) {
     // __asm__ __volatile__ (".intel_syntax noprefix\r\n");
     __asm__ __volatile__ ("lidt %0\r\n" : : "m"(idt_pointer));
@@ -32,7 +33,7 @@ uint8_t create_idt_attributes(bool present, int8_t ring, uint8_t type) {
 
 // Helper to write to I/O ports
 static void outb(uint16_t port, uint8_t val) {
-    __asm__ __volatile__ ( "out %1, %0\r\n" : : "a"(val), "dN"(port) );
+    __asm__ __volatile__ ( "outb %0, %1\r\n" : : "a"(val), "dN"(port) );
 }
 
 /** Helper to add a tiny delay for older hardware compatibility 
@@ -72,4 +73,16 @@ void pic_remap(int offset1, int offset2) {
     // 7. Restore masks (or leave at 0 to enable all)
     outb(0x21, 0);
     outb(0xA1, 0);
+}
+
+void init_idt() {
+    idtp.offset = idt;
+    idtp.size = (256*8)-1;
+    load_idt(idtp);
+}
+
+__attribute__((interrupt))
+__attribute__((target("general-regs-only")))
+void keyboard_interrupt_handler(struct interrupt_frame* frame) {
+
 }

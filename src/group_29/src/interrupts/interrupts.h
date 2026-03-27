@@ -28,9 +28,18 @@ enum {
     idt_type_task_gate = 0b0101
 };
 
+struct interrupt_frame {
+    uint32_t ip;      // Instruction Pointer
+    uint32_t cs;      // Code Segment
+    uint32_t flags;   // CPU Flags (EFLAGS)
+    uint32_t sp;      // Stack Pointer (only if privilege level changed)
+    uint32_t ss;      // Stack Segment (only if privilege level changed)
+} __attribute__((packed));
+
 void load_idt(struct idt_pointer idt_pointer);
 struct idt_gate create_idt_gate(uint32_t offset, uint16_t selector, uint8_t attributes);
 uint8_t create_idt_attributes(bool present, int8_t ring, uint8_t type);
 static void outb(uint16_t port, uint8_t val);
 static void io_wait();
 void pic_remap(int offset1, int offset2);
+void init_idt();

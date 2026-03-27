@@ -2,6 +2,7 @@
 #include "libc/stddef.h"
 #include "libc/stdbool.h"
 #include <multiboot2.h>
+#include "interrupts/interrupts.h"
 
 /**
  * \enum Gives acces to standard VGA text mode colors.
@@ -75,6 +76,8 @@ struct multiboot_info {
     struct multiboot_tag *first;
 };
 
+
+
 int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     gdt_init();
     // char a[]= "Hello World!!";
@@ -84,6 +87,7 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     struct VgaTextModeInterface screen = NewVgaTextModeInterface();
     screen.Print(&screen, "GDT loaded successfully!", VgaColor(vga_cyan, vga_black));
 
+    // GDT Test:
     uint16_t cs, ds, ss;
     __asm__ __volatile__("mov %%cs, %0" : "=r"(cs));
     __asm__ __volatile__("mov %%ds, %0" : "=r"(ds));
@@ -94,6 +98,11 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     } else {
         screen.Print(&screen, "GDT BAD", VgaColor(vga_light_red, vga_black));
     }
+
+    init_idt();
+    screen.Print(&screen, "IDT is initilalized", VgaColor(vga_black, vga_white));
+
+    
 
     // Test how the os handels overflow:
     // while(1){screen.Print(&screen, "aaaaaaaaaaaaaaaaaaaaaa", VgaColor(vga_white, vga_black));}
