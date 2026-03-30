@@ -1,6 +1,6 @@
 #ifndef IRQ_H
 
-// for indepth explenations of the following variables look to
+// for in-depth explanations of the following variables look to
 // https://wiki.osdev.org/8259_PIC
 #define IRQ_H
 #define PIC1 0x20            // address to the master PIC
