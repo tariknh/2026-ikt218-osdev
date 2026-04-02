@@ -5,8 +5,8 @@ static const int VGA_WIDTH = 80;
 static const int VGA_HEIGHT = 25;
 static uint16_t* const VGA_BUFFER = (uint16_t*) 0xB8000;
 
-static int terminal_row;
-static int terminal_column;
+int terminal_row;
+int terminal_column;
 static uint8_t terminal_color;
 
 static inline void outb(uint16_t port, uint8_t val) {
@@ -38,6 +38,39 @@ void terminal_update_cursor() {
     // Send the low byte (bits 0-7)
     outb(0x3D4, 0x0F);            // We want to set register 15 (Cursor Location Low)
     outb(0x3D5, (uint8_t)(pos & 0xFF));
+}
+void terminal_move_left() {
+    if (terminal_column > 0) {
+        terminal_column--;
+        terminal_update_cursor();
+    }
+} 
+
+void terminal_move_right() {
+    if (terminal_column < 79) {
+        terminal_column++;
+        terminal_update_cursor();
+    }
+}
+
+void terminal_refresh_line(char* buffer_from_cursor) {
+    // 1. Save the starting position
+    int start_x = terminal_column;
+    int start_y = terminal_row;
+
+    // 2. Print the current buffer content from the cursor forward
+    terminal_write(buffer_from_cursor);
+
+    // 3. Clear the "Tail"
+    // We print one extra space to catch the 'ghost' character from backspace.
+    // If you want to be safer, you can clear to the end of the line.
+    terminal_putchar(' ');
+
+    // 4. Restore the cursor to the "logical" typing position
+    // (Right after the character just typed, or at the same spot for backspace)
+    terminal_column = start_x;
+    terminal_row = start_y;
+    terminal_update_cursor();
 }
 
 static void terminal_scroll() {

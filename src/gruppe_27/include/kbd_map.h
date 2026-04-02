@@ -11,5 +11,9 @@ extern unsigned char kbd_us_upper[128];
 #define ENTER 0x1C
 #define LSHIFT 0x2A
 #define RSHIFT 0x36
+#define SCAN_LEFT  0x4B
+#define SCAN_RIGHT 0x4D
+#define SCAN_UP    0x48
+#define SCAN_DOWN  0x50
 
 #endif

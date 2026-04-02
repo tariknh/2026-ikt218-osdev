@@ -6,26 +6,6 @@
 // Linker symbol — first byte past the kernel image.
 extern uint32_t end;
  
-// ─── Timer ───────────────────────────────────────────────────────────────────
- 
-volatile uint32_t tick = 0;
- 
-void timer_callback(struct registers *regs) {
-    tick++;
-    static int second_counter = 0;
-    if (++second_counter >= 18) {
-        second_counter = 0;
-        // Uptime update hook
-    }
-}
- 
-void sleep(uint32_t ticks_to_wait) {
-    uint32_t end_tick = tick + ticks_to_wait;
-    while (tick < end_tick) {
-        __asm__("hlt");
-    }
-}
- 
 // Forward declaration — defined in kernel.cpp
 int kernel_main();
  
@@ -50,7 +30,6 @@ void main(uint32_t mb2_magic, uint32_t mb2_info) {
     print_memory_layout(mb2_info);
  
     // 6. IRQ handlers
-    irq_install_handler(0, timer_callback);
     irq_install_handler(1, keyboard_handler);
  
     // 7. Enable interrupts

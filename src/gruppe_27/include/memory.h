@@ -12,6 +12,7 @@ void  init_kernel_memory(uint32_t *kernel_end);
  
 void *malloc(size_t size);
 void  free(void *ptr);
+void *memmove(void* dest, const void* src, size_t n);
  
 void init_paging();
  

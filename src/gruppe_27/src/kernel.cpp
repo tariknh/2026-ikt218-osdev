@@ -21,17 +21,12 @@ extern "C" int kernel_main();
 // Everything here runs after the heap and paging are already up.
 int kernel_main() {
  
-    terminal_write("Hello William\n");
-    terminal_write("I am the best at coding. Look at me write something:\n");
- 
     // ── ISR smoke test ───────────────────────────────────────────────────────
     // (sleep() is defined in kernel.c and visible via extern "C" linkage)
-    extern void sleep(uint32_t);
  
-    sleep(10); __asm__ __volatile__("int $0");
-    sleep(10); __asm__ __volatile__("int $1");
-    sleep(10); __asm__ __volatile__("int $2");
-    sleep(10);
+    __asm__ __volatile__("int $0");
+    __asm__ __volatile__("int $1");
+    __asm__ __volatile__("int $2");
  
     // ── malloc / new demo ────────────────────────────────────────────────────
  
@@ -63,7 +58,7 @@ int kernel_main() {
  
     // ── Main loop ────────────────────────────────────────────────────────────
  
-    terminal_write("Kernel ready — type something:\n");
+    terminal_write("Kernel ready - type something:\n\n");
     while (true) {
         __asm__("hlt");
     }

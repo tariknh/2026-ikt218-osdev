@@ -1,5 +1,6 @@
 #include "kbd_map.h"
 #include "terminal.h"
+#include "memory.h"
 
 static int shift_pressed = 0;
 // The actual table lives here
@@ -27,48 +28,143 @@ char kbd_buffer[256];
 int kbd_pos = 0;
 
 void keyboard_handler(struct registers *r) {
+
     uint8_t scancode = inb(0x60);
 
+
+
     if (scancode == 0x2A || scancode == 0x36) {
+
         shift_pressed = 1;
+
         return;
+
     }
+
     // Check for Shift Release (Break codes: Make + 0x80)
+
     if (scancode == 0xAA || scancode == 0xB6) {
+
         shift_pressed = 0;
+
         return;
+
     }
+
+
 
     // Ignore other "Key Release" events
+
     if (scancode & 0x80) {
+
         return;
+
     }
+
+
 
     // Pick the right table based on state
+
     char ascii;
+
     if (shift_pressed) {
+
         ascii = kbd_us_upper[scancode];
+
     } else {
+
         ascii = kbd_us[scancode];
+
     }
 
 
-    if (ascii == '\b') {
+
+    if (scancode == SCAN_LEFT) {
+
         if (kbd_pos > 0) {
+
             kbd_pos--;
-            kbd_buffer[kbd_pos] = '\0';
-            terminal_putchar('\b');
+
+            terminal_move_left();
+
         }
-    } else if (ascii == '\n') {
+
+        return;
+
+    }
+
+    if (scancode == SCAN_RIGHT) {
+
+        // Only move right if there's a character to move over
+
+        if (kbd_buffer[kbd_pos] != '\0') {
+
+            kbd_pos++;
+
+            terminal_move_right();
+
+        }
+
+        return;
+
+    }
+
+
+
+    if (ascii == '\b' && kbd_pos > 0) {
+
+        kbd_pos--;
+
+        // [Shift buffer left logic here]
+
+       
+
+        // Move cursor back visually
+
+        terminal_column--;
+
+       
+
+        // Refresh the line from the new position
+
+        terminal_refresh_line(&kbd_buffer[kbd_pos]);
+
+    }
+
+    else if (ascii == '\n') {
+
         kbd_buffer[kbd_pos] = '\0';  // null-terminate
-        kbd_pos = 0;                 
+
+        kbd_pos = 0;                
+
         terminal_putchar('\n');
 
-    }else if (ascii != 0) {
-        // Store in buffer AND echo to terminal
-        if (kbd_pos < 255) {                  // bounds check
-            kbd_buffer[kbd_pos++] = ascii;    // ← actually writes to buffer
-        }
-        terminal_putchar(ascii);
+
+
     }
+
+    if (ascii != 0 && ascii != '\b' && ascii != '\n') {
+
+        // [Shift buffer right logic here]
+
+        kbd_buffer[kbd_pos] = ascii;
+
+       
+
+        // Move cursor forward FIRST for insertion
+
+        terminal_column++;
+
+       
+
+        // Refresh (this redraws the tail and moves cursor back to terminal_column)
+
+        terminal_refresh_line(&kbd_buffer[kbd_pos + 1]);
+
+       
+
+        kbd_pos++;
+
+    }
+
 }
