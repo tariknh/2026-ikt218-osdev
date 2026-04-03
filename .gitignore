@@ -12,6 +12,7 @@ iso
 .env
 build.ninja
 .ninja*
-
+.claude
 00_per_arne
 src/group_name/src/kernel.c
+.gitignore

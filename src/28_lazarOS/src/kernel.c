@@ -2,8 +2,10 @@
 #include <idt.h>
 #include <pic.h>
 #include <libc/stdint.h>
+#include <libc/stdio.h>
 #include <memory.h>
 #include <keyboard.h>
+#include <pit.h>
 
 
 /* ───────────────────────────────────────────────────────────────
@@ -151,22 +153,37 @@ void main(void)
     idt_init();
     serial_write("kernel: idt loaded\n");
 
-    init_kernel_memory(&end); //assign the end of the kernel as the start of the heap
+    init_kernel_memory(&end);
     init_paging();
     print_memory_layout();
 
-
-    
+    /* Initialize the Programmable Interval Timer */
+    init_pit();
 
     /* 2. Initialise the text-mode terminal */
     terminal_clear();
 
     /* 3. Print the required greeting */
-    terminal_write("Hello World\n");
-    serial_write("Hello World\n");
+    printf("Hello World!\n");
 
-    /* Halt – the kernel has nothing more to do */
+    /* Test memory allocation */
+    void* some_memory = malloc(12345);
+    void* memory2 = malloc(54321);
+    void* memory3 = malloc(13331);
+
+    printf("some_memory: 0x%x\n", (uint32_t)some_memory);
+    printf("memory2:     0x%x\n", (uint32_t)memory2);
+    printf("memory3:     0x%x\n", (uint32_t)memory3);
+
+    /* PIT sleep evaluation loop */
+    int counter = 0;
     while (1) {
-        __asm__ volatile("hlt");
+        printf("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", counter);
+        sleep_busy(1000);
+        printf("[%d]: Slept using busy-waiting.\n", counter++);
+
+        printf("[%d]: Sleeping with interrupts (LOW CPU).\n", counter);
+        sleep_interrupt(1000);
+        printf("[%d]: Slept using interrupts.\n", counter++);
     }
 }

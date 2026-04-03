@@ -1,6 +1,7 @@
 #include <libc/stdint.h>
 #include <keyboard.h>
 #include <pic.h>
+#include <pit.h>
 
 extern void terminal_write(const char *str);
 
@@ -45,16 +46,7 @@ void irq_handler(uint32_t vector)
     uint32_t irq_number = vector - 32;
 
     if (irq_number == 0) {
-        static uint32_t tick_count = 0;
-        tick_count++;
-
-        if (tick_count % 100 == 0) {
-            char num[12];
-            terminal_write("\rTICKS: ");
-            append_uint(num, tick_count);
-            terminal_write(num);
-            terminal_write("   ");
-        }
+        pit_handler();  /* advance PIT tick counter */
     } else if (irq_number == 1) {
         unsigned char scancode = inb(0x60);
 
