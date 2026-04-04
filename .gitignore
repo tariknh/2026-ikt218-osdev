@@ -19,6 +19,4 @@ src/group_name/src/kernel.c
 microsoft.gpg
 .devcontainer/
 .Rhistory
-build/kernel.bin
-build/kernel.iso
-build/disk.iso
+build/
