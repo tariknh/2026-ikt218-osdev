@@ -80,6 +80,8 @@ add_executable(uiaos-kernel
 	src/lib/radio.c
 	src/lib/matrix.c
 	src/lib/fedrelandet.c
+	src/lib/shell.c
+
 )
 
 # Include directories for the kernel target

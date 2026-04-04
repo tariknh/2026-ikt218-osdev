@@ -8,6 +8,7 @@
 #include "../../include/piano.h"
 #include "../../include/program.h"
 #include "../../include/radio.h"
+#include "../../include/shell.h"
 #include "song/song.h"
 
 // Maps scancode to character. keyboard Layout: US QWERTY
@@ -24,48 +25,36 @@ const char scancode_ascii[128] = {
     0,   0,    0,    0,   0,    0,   0,   0,   0,   0,   0,
 };
 
-static void shell_keyboard_handler(uint8_t scancode) {
-  char c = scancode_ascii[scancode];
-  if (c) {
-    printf("%c", c);
-  }
-}
-
+// Function to add element to circular queue.
 void kb_enqueue(KeyboardBuffer *kb, int entry) {
   kb->buffer[kb->front] = entry;
   kb->front = (kb->front + 1) % KEYBOARD_BUFFER_SIZE;
 }
+// Function to retrieve element to circular queue.
 int kb_dequeue(KeyboardBuffer *kb) {
   if (kb->front == kb->back) {
-    // printf("Buffer is emptry\n");
     return -1;
   }
   int entry = kb->buffer[kb->back];
   kb->back = (kb->back + 1) % KEYBOARD_BUFFER_SIZE;
   return entry;
 }
+
 KeyboardBuffer kb = {0};
 
+// Gets keyboard key, returning -1 on key release.
 int get_key(int scancode) {
   if (scancode & 0x80)
     return -1;
   return scancode_ascii[scancode];
 }
-void keyboard_handler_common(int scancode) {
-  if (scancode == 0x10) {
-    printf("SWITCHING ACTIVE PROGRAM TO: MENU");
-    active_program = PROGRAM_MENU;
-  }
-}
 
+// Routes scancode to appropriate handler based on current active program.
 void keyboard_handler(int scancode) {
-  if (scancode == 0x10) {
-    active_program = PROGRAM_MENU;
-    disable_speaker();
-  }
 
   switch (active_program) {
   case PROGRAM_SHELL:
+    shell_keyboard_handler(scancode);
     break;
   case PROGRAM_PIANO:
     piano_keyboard_handler(scancode);
@@ -92,7 +81,7 @@ static void keyboard_irq_handler(registers_t *regs) {
   uint8_t scancode =
       inb(KEYBOARD_DATA_PORT); // Read scancode from keyboard data port
 
-  // if q is pressed set program to menu
+  // If 'q' is pressed set program to menu (quits current program)
   if (scancode == 0x10) {
     active_program = PROGRAM_MENU;
     disable_speaker();
@@ -100,6 +89,7 @@ static void keyboard_irq_handler(registers_t *regs) {
     return;
   }
 
+  // queues keyboard scancode to ring buffer
   kb_enqueue(&kb, scancode);
 }
 

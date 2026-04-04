@@ -16,50 +16,45 @@
 #include "../include/program.h"
 #include "lib/song/song.h"
 
-extern uint32_t
-    end; // Defined in arch/i386/linker.ld — marks the end of the kernel image
+extern uint32_t end; // The memory address of where the kernel ends
 
 int kernel_main();
 
 int main(uint32_t magic, struct multiboot_info *mb_info_addr) {
+  // Requirements from assignment 2
   gdt_init();
+  // Requirements from assignment 3
   idt_init();
   isr_init();
   irq_init();
   keyboard_init();
-
-  // Initialize kernel heap starting just past the kernel image.
+  // Requirements from assignment 4
   init_kernel_memory(&end);
-
-  // Set up basic identity-mapped paging.
   init_paging();
-
-  // Display heap/paging layout.
   print_memory_layout();
-
-  // Initialise the PIT at 1000 Hz (1 tick per ms).
   init_pit();
 
-  // Enable interrupts the CPU starts with interrupts disabled (cli in
-  // _start). Only safe to do after GDT, IDT, ISRs, IRQs and PIT are all set up.
+  // Enable interrupts after we disabled them in _start in multiboot2.h
   asm volatile("sti");
-  // use the same trick as channel 2 to make matrix update happen less
-  // frequently
+
   int reload = 250;
   int counter = reload;
 
+  // Main kernel loop
   while (true) {
     int entry = kb_dequeue(&kb);
     if (entry != -1) {
       keyboard_handler(entry);
     }
-    sleep_interrupt(1);
     if (active_program == PROGRAM_PIANO) {
+      // Uses a counter and reload value to make the matrix
+      // update happen less frequently.
       if (--counter == 0) {
         counter = reload;
         matrix_rain_frame();
       }
     }
+    sleep_interrupt(1);
   }
 
   return kernel_main();

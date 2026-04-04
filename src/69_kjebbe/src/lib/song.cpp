@@ -72,6 +72,7 @@ extern "C" SongPlayer *create_song_player() {
   return player;
 }
 
+// enables speaker then plays sound. Used by piano.c
 extern "C" void piano_play_sound(uint32_t freq) {
   enable_speaker();
   play_sound(freq);

@@ -6,6 +6,7 @@
 #include "song/frequencies.h"
 #include "song/song.h"
 
+// Defines piano keyboard layout and their offsets from C.
 static const uint32_t scancode_note_offsets[128] = {
     [0x1E] = 1,  // a (c)
     [0x11] = 2,  // w (Db)
@@ -25,8 +26,6 @@ static const uint32_t scancode_note_offsets[128] = {
 };
 
 void piano_keyboard_handler(uint8_t scancode) {
-  keyboard_handler_common(scancode);
-
   // if key release bit is set we disable speaker and return
   if (scancode & 0x80) {
     disable_speaker();
@@ -38,9 +37,8 @@ void piano_keyboard_handler(uint8_t scancode) {
     int octave = 5;
     int freq_to_play = (octave * 12) + note_offset;
     int freq = freqs[freq_to_play];
-    // printf("trying to play freq, %d\n", freq);
+    // Changes the letter and number that is drawn on the matrix.
     update_matrix_current(note_offset);
-
     piano_play_sound(freq);
   }
 }

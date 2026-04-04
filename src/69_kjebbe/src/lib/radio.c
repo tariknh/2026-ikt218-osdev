@@ -4,6 +4,7 @@
 #include "../../include/menu.h"
 #include "../lib/song/song.h"
 
+// Defines all songs available in song.h
 Song song_1 = {.notes = music_1,
                .length = sizeof(music_1) / sizeof(music_1[0])};
 

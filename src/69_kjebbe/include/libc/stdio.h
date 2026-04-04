@@ -3,13 +3,12 @@
 #include "stdbool.h"
 #include "stddef.h"
 #include "stdint.h"
-// solid colours for flag
+// Solid colours for the Norwegian flag
 #define VGA_RED 0x44
 #define VGA_WHITE 0x77
 #define VGA_BLUE 0x11
-#define VGA_GREEN_DARK 0x20
 
-// foreground colours on black background
+// Foreground colours on black background
 #define VGA_BLUE_ON_BLACK 0x01
 #define VGA_GREEN_ON_BLACK 0x02
 #define VGA_CYAN_ON_BLACK 0x03

@@ -99,6 +99,8 @@ static Note music_6[] = {
     {A_SHARP4, 500}, {A_SHARP4, 250}, {A_SHARP4, 250}, {A_SHARP4, 250},
     {F5, 250},       {D5, 250},       {C5, 250},       {A_SHARP4, 500},
 };
+
+// Defines musical durations
 static const int bar = 3000;
 static const int half = bar / 2;
 static const int quarter = bar / 4;
@@ -109,101 +111,103 @@ static const int quarter_dot = bar / 4 + eight;
 static const int eight_dot = bar / 4 + sixteenth;
 
 static Note nasjonal_sangen[] = {
-    // takt 1
+    // bar 1
     {G4, quarter_dot},
     {F4, eight},
     {E4, quarter},
     {D4, quarter},
-    // takt 2
+    // bar 2
     {C4, quarter},
     {D4, quarter},
     {E4, quarter},
     {F4, quarter},
-    // takt 3
+    // bar 3
     {G4, quarter_dot},
     {A4, eight},
     {G4, quarter},
     {F4, quarter},
-    // takt 4
+    // bar 4
     {E4, half_dot},
     {R, quarter},
-    // takt 5
+    // bar 5
     {A4, quarter_dot},
     {G4, eight},
     {F4, quarter},
     {E4, quarter},
-    // takt 6
+    // bar 6
     {D4, quarter},
     {E4, quarter},
     {F4, quarter},
     {G4, quarter},
-    // takt 7
+    // bar 7
     {G4, quarter_dot},
     {A4, eight},
     {A4, quarter},
     {B4, quarter},
-    // takt 8
+    // bar 8
     {C5, half},
     {R, half},
-    // takt 9
+    // bar 9
     {C5, quarter_dot},
     {C5, eight},
     {B4, eight_dot},
     {B4, sixteenth},
     {A4, eight_dot},
     {A4, sixteenth},
-    // takt 10
+    // bar 10
     {G4, half},
     {E4, quarter},
     {R, quarter},
-    // takt 11
+    // bar 11
     {A4, quarter_dot},
     {A4, eight},
     {G4, quarter},
     {G4, quarter},
-    // takt 12
+    // bar 12
     {F4, half},
     {R, quarter},
     {G4, eight_dot},
     {G4, sixteenth},
-    // takt 13
+    // bar 13
     {G4, quarter},
     {A4, quarter},
     {A4, quarter},
     {B4, quarter},
-    // takt 14
+    // bar 14
     {B4, half},
     {C5, half},
-    // takt 15
+    // bar 15
     {C5, quarter_dot},
     {C5, eight},
     {B4, quarter},
     {C5, quarter},
-    // takt 16
+    // bar 16
     {D5, half},
     {R, quarter},
     {D5, eight_dot},
     {D5, sixteenth},
-    // takt 17
+    // bar 17
     {D5, quarter},
     {E5, quarter},
     {F5, quarter},
     {E5, quarter},
-    // takt 18
+    // bar 18
     {D5, half},
     {C5, quarter},
     {B4, eight_dot},
     {A4, sixteenth},
-    // takt 19
+    // bar 19
     {G4, quarter_dot},
     {A4, eight},
     {A4, quarter},
     {B4, quarter},
-    // takt 20
+    // bar 20
     {C5, bar},
 
 };
 
+// Removes a duration at the end of each note and replaces it silence of the
+// same duration.
 static Song add_space_between_notes(Song *song, uint32_t breath_ms) {
   Note *new_notes = (Note *)malloc(sizeof(Note) * song->length * 2);
   for (uint32_t i = 0; i < song->length; i++) {

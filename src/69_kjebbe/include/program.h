@@ -1,6 +1,7 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
+// Defines enums for all existing programs on KjebbeOS
 typedef enum {
   PROGRAM_SHELL = 0,
   PROGRAM_PIANO,

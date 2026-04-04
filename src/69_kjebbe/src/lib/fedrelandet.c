@@ -8,6 +8,7 @@ Song nasjonal = {.notes = nasjonal_sangen,
                  .length =
                      sizeof(nasjonal_sangen) / sizeof(nasjonal_sangen[0])};
 
+// Prints Norwegian flag and plays Norwegian national anthem
 void hedre_fedrelandet() {
   SongPlayer *songPlayer = create_song_player();
   Song song_spaced = add_space_between_notes(&nasjonal, 50);

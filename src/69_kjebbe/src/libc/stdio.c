@@ -115,6 +115,8 @@ static void print_hex(uint32_t value) {
   }
 }
 
+// Helper function for printf, so that we can have printf with and without
+// default colour.
 static int vprintf_color(const char *format, va_list args,
                          uint8_t terminal_color) {
   // loops through every character and selects the appropriate helper function
@@ -145,21 +147,21 @@ static int vprintf_color(const char *format, va_list args,
   }
 }
 
-int printf_color(const char *format, uint8_t terminal_color, ...) {
-  // Uses va_list, va_start, va_end to have a undefined amount of arguments
-  // given to the function.
-  va_list args;
-  va_start(args, terminal_color);
-  vprintf_color(format, args, terminal_color);
-  va_end(args);
-  return 0;
-}
-
 // The main function this file exposes.
 // Every other function is a helper function.
 int printf(const char *format, ...) {
   va_list args;
   va_start(args, format);
+  vprintf_color(format, args, terminal_color);
+  va_end(args);
+  return 0;
+}
+
+int printf_color(const char *format, uint8_t terminal_color, ...) {
+  // Uses va_list, va_start, va_end to have a undefined amount of arguments
+  // given to the function.
+  va_list args;
+  va_start(args, terminal_color);
   vprintf_color(format, args, terminal_color);
   va_end(args);
   return 0;
@@ -173,9 +175,13 @@ void terminal_set_char(int x, int y, char c, uint8_t terminal_color) {
 }
 
 void clearTerminal() {
-  for (int i = 0; i < VGA_HEIGHT; i++) {
-    terminal_write("\n");
+  for (int x = 0; x < VGA_WIDTH; x++) {
+    for (int y = 0; y < VGA_HEIGHT; y++) {
+      terminal_set_char(x, y, ' ', terminal_color);
+    }
   }
+  terminal_row = 0;
+  terminal_col = 0;
 }
 
 void terminal_write_color(const char *str, uint8_t terminal_color) {

@@ -22,6 +22,6 @@ void isr_init(void) {
 
 // Called from isr_common_stub with a pointer to the saved register state.
 void isr_handler(registers_t *regs) {
-  printf("ISR fired: interrupt %d — %s\n", regs->int_no,
+  printf("ISR fired: interrupt %d: %s\n", regs->int_no,
          exception_messages[regs->int_no]);
 }

@@ -3,6 +3,7 @@
 #include "../../include/libc/stdio.h"
 #include "../../include/program.h"
 
+// Prints all available programs and their corresponding index to select them.
 void print_menu() {
   printf("Select one of the following programs:\n");
   for (int i = 0; i < PROGRAM_END; i++)
@@ -29,7 +30,9 @@ void print_radio_menu() {
   printf("press 0-5 to play a song :)\n");
 }
 
+// switches active program based on key presses
 void menu_navigate(int key) {
+  // Translate ASCII numbers to actual numbers.
   int key_char = key - 48;
   switch (key_char) {
   case PROGRAM_SHELL:
