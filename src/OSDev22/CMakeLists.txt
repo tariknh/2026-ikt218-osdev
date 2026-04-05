@@ -60,17 +60,28 @@ set(OS_KERNEL_LINKER "${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${OS_ARCH_TARGET}/lin
 add_executable(uiaos-kernel
     src/multiboot2.asm
     src/kernel.c
+
     src/gdt.c
     src/arch/i386/gdt.asm
+
     src/terminal.c
+
     src/idt.c
     src/isr.c
     src/irq.c
     src/keyboard.c
     src/string.c
+
     src/arch/i386/idt.asm
     src/arch/i386/isr.asm
     src/arch/i386/irq.asm
+    # Assignment 4 memory system
+    src/memory/malloc.c
+    src/memory/memory.c
+    src/memory/memutils.c
+
+    # PIT timer driver
+    src/pit.c
 )
 # Include directories for the kernel target
 target_include_directories(uiaos-kernel PUBLIC include)
