@@ -134,31 +134,34 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         # Escape special LaTeX characters in caption
         escaped_filename=$(echo "$filename" | sed 's/_/\\_/g;s/&/\\&/g;s/%/\\%/g;s/\\$/\\$/g')
         
-        # Output listing
-        echo ""
-        echo "\begin{listing}[H]"
-        echo "    \begin{minted}["
-        echo "        linenos,"
-        echo "        breaklines,"
-        echo "        frame=single,"
-        echo "        framesep=3mm,"
-        echo "        baselinestretch=1.1,"
-        echo "        numbersep=6pt,"
-        echo "        fontsize=\\footnotesize,"
-        echo "        tabsize=4,"
-        echo "        bgcolor=white,"
-        echo "        style=friendly,"
-        echo "    ]{$language}"
+        # Output listing using heredoc for cleaner template
+        cat << EOF
+
+\begin{listing}[H]
+    \begin{minted}[
+        linenos,
+        breaklines,
+        frame=single,
+        framesep=3mm,
+        baselinestretch=1.1,
+        numbersep=6pt,
+        fontsize=\footnotesize,
+        tabsize=4,
+        bgcolor=white,
+        style=friendly,
+    ]{$language}
+EOF
         
-        # Read and output file content
-        # Escape special LaTeX characters
-        cat "$filepath" | sed 's/\\/\\\\/g'
+        # Read and output file content (escape backslashes for LaTeX)
+        sed 's/\\/\\\\/g' "$filepath"
         
-        echo "    \end{minted}"
-        echo "    \caption{Implementation of \\texttt{$escaped_filename}}"
-        echo "    \label{$label}"
-        echo "\end{listing}"
-        echo ""
+        cat << EOF
+    \end{minted}
+    \caption{Implementation of \texttt{$escaped_filename}}
+    \label{$label}
+\end{listing}
+
+EOF
     fi
 done < "$FILE_LIST"
 
