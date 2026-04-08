@@ -1,6 +1,7 @@
 #include "kbd_map.h"
 #include "terminal.h"
 #include "memory.h"
+#include "shell.h"
 
 static int shift_pressed = 0;
 // The actual table lives here
@@ -95,11 +96,11 @@ void keyboard_handler(struct registers *r) {
 }
 
     else if (ascii == '\n') {
+        kbd_buffer[kbd_pos] = '\0';
+        shell_execute_command(kbd_buffer);
 
-        kbd_buffer[kbd_pos] = '\0';  // null-terminate
         kbd_pos = 0;
         kbd_buffer[0] = '\0';                
-        terminal_putchar('\n');
         return;
     }
 

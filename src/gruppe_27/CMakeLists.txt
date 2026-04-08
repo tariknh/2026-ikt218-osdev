@@ -71,6 +71,7 @@ add_executable(uiaos-kernel
 	src/keyboard.c
 	src/malloc.c
 	src/paging.c
+	src/shell.c
 )
 
 # Include directories for the kernel target
