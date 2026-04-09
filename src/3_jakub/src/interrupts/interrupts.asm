@@ -127,7 +127,7 @@ irq_common_stub: ; Common IRQ handler stub
     pop eax  ; Discard the esp argument pushed before the call
     pop ebx ; Restore the original data segment selector from the stack
 
-    pop ebx ; Restore the original data segment selector from the stack
+    ;pop ebx ; Restore the original data segment selector from the stack
     mov ds, bx ; Restore the original data segment
     mov es, bx ; Restore the original extra segment
     mov fs, bx ; Restore the original FS segment
