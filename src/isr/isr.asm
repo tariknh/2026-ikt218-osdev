@@ -28,4 +28,6 @@ isr14:
 	cld
 	call isr14_handler
 	popa
+	; Page fault legger en error code på stacken. Fjern den før iretd.
+	add esp, 4
 	iretd

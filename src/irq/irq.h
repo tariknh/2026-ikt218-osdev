@@ -7,12 +7,8 @@ extern "C" {
 
 #include "libc/stdint.h"
 
-
-// Disse blir remapped til ISR 32-47 for å unngå konflikt med CPU exceptions.
-// IRQ Initialization- Initialiser IRQ subsystem: PIC remapping, IDT registration, enable interrupts
+// Setter opp PIC remap og kobler IRQ-rutiner i IDT.
 void irq_initialize(void);
-// Assembly stubs - brukt av IDT for å håndtere IRQs
-// Disse assembly-funksjonene lagrer registers, celler C-handler, og returnerer
 
 void irq0(void);   // Timer IRQ
 void irq1(void);   // Keyboard IRQ
@@ -31,13 +27,12 @@ void irq13(void);  // FPU Co-processor
 void irq14(void);  // ATA Hard Disk 1
 void irq15(void);  // ATA Hard Disk 2
 
-
-// C-level IRQ Handlers
-// kalles fra assembly stubs
+// Kalles fra assembly-stubbene over.
 
 void irq0_handler(void);   // Timer
 void irq1_handler(void);   // Keyboard
-void irq_dispatcher(uint8_t irq);  // Dispatcher for andre IRQs
+void irq_dispatcher(uint8_t irq);
+uint32_t irq_get_keyboard_event_count(void);
 
 #ifdef __cplusplus
 }
