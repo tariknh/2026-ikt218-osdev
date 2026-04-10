@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "multiboot2.h"
+
  
 
 extern uint32_t end;
@@ -20,5 +21,7 @@ void init_paging();
 
 void print_memory_layout(uint32_t mb2_info_addr);
 void print_heap_info();
+
+
  
 #endif // MEMORY_H

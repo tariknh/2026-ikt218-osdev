@@ -69,18 +69,15 @@ void irq_install() {
     idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
 }
 
-void irq_handler(struct registers r) {
-    // If the interrupt came from the Slave PIC (IRQ 8-15), send EOI to Slave
-    if (r.int_no >= 40) {
+void irq_handler(struct registers *r) {
+    if (r->int_no >= 40) {
         outb(0xA0, 0x20);
     }
-    // Always send EOI to Master PIC
     outb(0x20, 0x20);
 
-    // Call the custom handler if one is registered
     void (*handler)(struct registers *r);
-    handler = irq_routines[r.int_no - 32];
+    handler = irq_routines[r->int_no - 32];
     if (handler) {
-        handler(&r);
+        handler(r);
     }
 }

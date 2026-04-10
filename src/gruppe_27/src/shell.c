@@ -13,7 +13,7 @@ static uint32_t parse_uint(const char* str) {
 }
 //possible to add more commands for help here
 void command_help(){
-    terminal_write("\nCommands avalible:\nclear\nhello\nmemory\ntriangle\nhelp\n");
+    terminal_write("\nCommands avalible:\nclear\nhello\nmemory\ntriangle\nsleep_b <value>\nsleep_i <value>\nhelp\n");
 }
 
 void command_triangle() {
@@ -32,7 +32,9 @@ void command_memory(uint32_t mb2_info) {
     print_memory_layout(mb2_info);
 }
 void command_sleep_busy(const char* args) {
+    __asm__("sti");
     uint32_t seconds = parse_uint(args);
+    terminal_write("\n");
     if (seconds == 0) {
         terminal_write("Usage: sleep_busy <seconds>\n");
         return;
@@ -40,8 +42,6 @@ void command_sleep_busy(const char* args) {
 
     for (uint32_t i = 1; i <= seconds; i++) {
         terminal_write_dec(i);
-        terminal_write("/");
-        terminal_write_dec(seconds);
         terminal_write("\n");
         sleep_busy(1000);
     }
@@ -50,6 +50,7 @@ void command_sleep_busy(const char* args) {
 
 void command_sleep_interrupt(const char* args) {
     uint32_t seconds = parse_uint(args);
+    terminal_write("\n");
     if (seconds == 0) {
         terminal_write("Usage: sleep_interrupt <seconds>\n");
         return;
@@ -57,8 +58,6 @@ void command_sleep_interrupt(const char* args) {
 
     for (uint32_t i = 1; i <= seconds; i++) {
         terminal_write_dec(i);
-        terminal_write("/");
-        terminal_write_dec(seconds);
         terminal_write("\n");
         sleep_interrupt(1000);
     }
@@ -95,10 +94,10 @@ void shell_execute_command(char* input) {
     else if(strcmp(input, "triangle") == 0) {
         command_triangle();
     }
-    else if(strcmp(cmd, "sleep_busy") == 0) {
+    else if(strcmp(cmd, "sleep_b") == 0) {
         command_sleep_busy(args);
     }
-    else if(strcmp(cmd, "sleep_interrupt") == 0) {
+    else if(strcmp(cmd, "sleep_i") == 0) {
         command_sleep_interrupt(args);
     }
     else {
