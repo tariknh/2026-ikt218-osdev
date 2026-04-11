@@ -72,7 +72,7 @@ char* format_string(char input_string[], int32_t value) {
     uint16_t input_size = strlen(input_string);
 
     // worst case: input + int32 max + null
-    char *out = (char*)malloc(input_size + 12);
+    char* out = (char*)malloc(input_size + 12);
     if (!out) {
         return NULL;
     }
@@ -81,21 +81,18 @@ char* format_string(char input_string[], int32_t value) {
 
     for (uint16_t i = 0; i < input_size && input_string[i] != '\0'; i++) {
 
-        if (input_string[i] == '%' &&
-            (i + 1) < input_size &&
-            input_string[i + 1] == 'd')
-        {
+        if (input_string[i] == '%' && (i + 1) < input_size && input_string[i + 1] == 'd') {
             char num_buf[12];
             int len = int_to_str(value, num_buf);
 
             for (int k = 0; k < len; k++) {
-                out[j++] = num_buf[k];
+                out[j] = num_buf[k];
+                j++;
             }
 
             i++; // skip 'd'
         }
-        else
-        {
+        else {
             out[j++] = input_string[i];
         }
     }

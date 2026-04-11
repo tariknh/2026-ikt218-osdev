@@ -74,11 +74,10 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
         screen.Print(&screen, "free() reuse failed\n\n", VgaColor(vga_black, vga_light_red));
     }
 
-    char input[] = "Testing formatting! -192: %d!\n";
+    char input[] = "Testing formatting: string: -192 | formatted number: %d\n";
 
-    char* output = format_string(input, -192);
+    char* output = format_string("We have %d problems.\n", 1600);
     screen.Print(&screen, output, VgaColor(vga_black, vga_white));
-
     free((void*)output);
 
     while (true) {
