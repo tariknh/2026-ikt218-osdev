@@ -151,13 +151,16 @@ MemoryDebugData get_memory_layout(void) {
     data.heap_start = heap_start_address;
     data.heap_end = heap_end_address;
 
-    append_string(data.formatted, &offset, "KEND ");
+    append_string(data.formatted, &offset, "KEND: ");
     append_hex32(data.formatted, &offset, data.kernel_end);
-    append_string(data.formatted, &offset, " HST ");
+    append_string(data.formatted, &offset, "\nHST:  ");
     append_hex32(data.formatted, &offset, data.heap_start);
-    append_string(data.formatted, &offset, " HEND ");
+    append_string(data.formatted, &offset, "\nHEND: ");
     append_hex32(data.formatted, &offset, data.heap_end);
-    data.formatted[offset] = '\0';
+    
+    data.formatted[offset] = '\n';
+    data.formatted[offset+1] = '\n';
+    data.formatted[offset+2] = '\0';
 
     return data;
 }

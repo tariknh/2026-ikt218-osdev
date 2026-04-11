@@ -6,6 +6,7 @@
 #include "interrupts/interrupts.h"
 #include "memory/heap.h"
 #include "vga_text_mode_interface/vga_text_mode_interface.h"
+#include "format/format.h"
 
 extern uint32_t end;
 
@@ -47,7 +48,9 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     init_kernel_memory(&end);
 
     // Memory test:
-    print_memory_layout();
+    MemoryDebugData debug_data = get_memory_layout();
+    screen.Print(&screen, debug_data.formatted, VgaColor(vga_black, vga_light_magenta));
+    // print_memory_layout();
 
     void* first_block = malloc(128U);
     void* second_block = malloc(256U);
@@ -66,6 +69,13 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     } else {
         screen.Print(&screen, "free() reuse failed\n\n", VgaColor(vga_black, vga_light_red));
     }
+
+    char input = "Testing formatting! -192: %d!\n";
+
+    char* output = format_string(input, 31, -192);
+    // screen.Print(&screen, output, VgaColor(vga_black, vga_white));
+
+    free((void*)output);
 
     // Test how the os handels overflow:
     // while(1){screen.Print(&screen, "aaaaaaaaaaaaaaaaaaaaaa", VgaColor(vga_white, vga_black));}
