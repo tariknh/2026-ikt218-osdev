@@ -35,7 +35,7 @@ enum standard_vga_text_color{
     vga_red = 4,
     vga_magenta = 5,
     vga_brown = 6,
-    vga_light_grey = 7,
+    vga_light_gray = 7,
     vga_dark_gray = 8,
     vga_light_blue = 9,
     vga_light_green = 10,
