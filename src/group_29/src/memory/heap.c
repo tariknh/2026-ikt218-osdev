@@ -45,17 +45,6 @@ static void coalesce_free_blocks(void) {
     }
 }
 
-static void write_text_at(uint8_t row, uint8_t col, const char* text, uint8_t color) {
-    uint16_t* cursor = VGA_MEMORY + (row * VGA_WIDTH) + col;
-
-    while (*text != '\0' && col < VGA_WIDTH) {
-        *cursor = (uint16_t)((color << 8) | (uint8_t)*text);
-        ++cursor;
-        ++col;
-        ++text;
-    }
-}
-
 static void append_string(char* buffer, size_t* offset, const char* text) {
     while (*text != '\0') {
         buffer[*offset] = *text;

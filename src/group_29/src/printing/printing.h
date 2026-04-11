@@ -1,8 +1,7 @@
 #pragma once
 
 #include "../vga_text_mode_interface/vga_text_mode_interface.h"
-
-
+#include "../memory/memory_macros.h"
 
 #define TEMP VGA_TERMINAL_WIDTH * sizeof(uint16_t) * 2
 
@@ -16,3 +15,11 @@ void scroll_screen();
 /// @param string The char array (string) to print. To include formatted values, use format_string as declared in format/format.h
 /// @param color_bitmap The color the string should be displayed as. For this parameter use VgaColor(bg, fg) where bg/fg are VGA color enums.
 void print(const char* string, uint8_t color_bitmap);
+
+/// @brief Writes text at a specific location in the "terminal"
+///
+/// @param row The row in the "terminal" to write to
+/// @param column The column in the "terminal" to write to
+/// @param string The char array (string) to write. To include formatted values, use format_string as declared in format/format.h
+/// @param color_bitmap The color the string should be displayed as. For this parameter use VgaColor(bg, fg) where bg/fg are VGA color enums.
+void write_text_at(uint8_t row, uint8_t column, const char* string, uint8_t color_bitmap);

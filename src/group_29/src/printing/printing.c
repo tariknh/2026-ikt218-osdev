@@ -61,3 +61,14 @@ void print(const char* string, uint8_t color_bitmap) {
     // After printing, update the cursor position
     main_interface.cursor.CalculateRowColFromMemoryPosition(&(main_interface.cursor));
 }
+
+void write_text_at(uint8_t row, uint8_t column, const char* string, uint8_t color_bitmap) {
+    uint16_t* cursor = VGA_MEMORY + (row * VGA_WIDTH) + column;
+
+    while (*string != '\0' && column < VGA_WIDTH) {
+        *cursor = (uint16_t)((color_bitmap << 8) | (uint8_t)*string);
+        ++cursor;
+        ++column;
+        ++string;
+    }
+}

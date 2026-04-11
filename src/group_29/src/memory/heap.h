@@ -4,13 +4,11 @@
 #include "libc/stddef.h"
 #include "libc/stdbool.h"
 
+#include "../printing/printing.h"
 #include "../vga_text_mode_interface/vga_text_mode_interface.h"
 
-#define HEAP_ALIGNMENT 8U
-#define HEAP_SIZE_BYTES 0x100000U
-#define PAGE_SIZE_BYTES 0x1000U
-#define VGA_WIDTH 80U
-#define VGA_MEMORY ((uint16_t*)0xB8000)
+#include "memory_macros.h"
+
 
 /*
  * Fixed-size early kernel heap placed directly after the linker-provided end

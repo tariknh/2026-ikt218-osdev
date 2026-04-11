@@ -28,8 +28,9 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     // init vga interface for printing
     init_vga_interface_for_printing();
 
-    // Terminal header
-    print(" HEADER - These two rows\nwill be preserved\n", VgaColor(vga_white, vga_black));
+    // Terminal header and footer
+    print(" HEADER - This row and the one below will not be printed/scrolled on\n\n", VgaColor(vga_white, vga_black));
+    write_text_at(VGA_TERMINAL_HEIGHT - 1, 0, "This row and the one above will not be printed/scrolled on", VgaColor(vga_white, vga_black));
 
     gdt_init();
     // char a[]= "Hello World!!";
