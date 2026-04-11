@@ -4,7 +4,8 @@
 #define PIT_H
 
 #include "libc/stdint.h"
-#include "../interrupts/interrupts.h"
+
+struct interrupt_frame;
 
 // PIT ports
 #define PIT_CMD_PORT 0x43
@@ -19,18 +20,18 @@
 #define PIC_EOI 0x20
 
 // PIT config
+#define PIT_DEFAULT_DIVISOR 0x4E20
 #define PIT_BASE_FREQUENCY 1193180
 #define TARGET_FREQUENCY 1000
 #define DIVIDER (PIT_BASE_FREQUENCY / TARGET_FREQUENCY)
-#define TICKS_PER_MS 1
+#define TICKS_PER_MS (TARGET_FREQUENCY / TARGET_FREQUENCY)
 
 void init_pit();
 
 void sleep_interrupt(uint32_t milliseconds);
 void sleep_busy(uint32_t milliseconds);
 
-// ✅ ADD THESE (missing in your code)
-uint32_t get_current_tick();
-void pit_irq_handler();
+uint32_t get_current_tick(void);
+void pit_irq_handler(struct interrupt_frame* frame);
 
 #endif

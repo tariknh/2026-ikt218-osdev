@@ -77,7 +77,7 @@ static void append_hex32(char* buffer, size_t* offset, uint32_t value) {
     }
 }
 
-void init_kernel_memory(void* kernel_end) {
+void init_kernel_memory(uint32_t* kernel_end) {
     /* Keep the first block aligned so returned allocations stay aligned too. */
     kernel_end_address = (uint32_t)kernel_end;
     heap_start_address = (uint32_t)align_up((size_t)kernel_end);
@@ -87,6 +87,31 @@ void init_kernel_memory(void* kernel_end) {
     heap_head->size = HEAP_SIZE_BYTES - sizeof(struct heap_block);
     heap_head->is_free = true;
     heap_head->next = NULL;
+}
+
+char* pmalloc(size_t size) {
+    uint32_t raw_address;
+    uint32_t aligned_address;
+    void* raw_block;
+
+    if (size == 0U) {
+        return NULL;
+    }
+
+    raw_block = malloc(size + PAGE_SIZE_BYTES + sizeof(uint32_t));
+    if (raw_block == NULL) {
+        return NULL;
+    }
+
+    raw_address = (uint32_t)raw_block + sizeof(uint32_t);
+    aligned_address = (uint32_t)align_up((size_t)raw_address);
+
+    if ((aligned_address & (PAGE_SIZE_BYTES - 1U)) != 0U) {
+        aligned_address = (aligned_address + PAGE_SIZE_BYTES - 1U) & ~(PAGE_SIZE_BYTES - 1U);
+    }
+
+    ((uint32_t*)aligned_address)[-1] = (uint32_t)raw_block;
+    return (char*)aligned_address;
 }
 
 void* malloc(size_t size) {

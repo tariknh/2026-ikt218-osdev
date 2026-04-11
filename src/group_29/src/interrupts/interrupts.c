@@ -1,4 +1,5 @@
 #include "interrupts.h"
+#include "../pit/pit.h"
 #include "../vga_text_mode_interface/vga_text_mode_interface.h"
 
 static struct idt_gate idt[256];
@@ -86,12 +87,13 @@ void init_idt() {
     pic_remap(0x20, 0x28);
 
     // Port 0x21 is the Master PIC data port. 
-    // Bit 1 corresponds to IRQ 1. 0 = Enabled, 1 = Masked.
-    outb(0x21, 0xFD); // 0xFD is 11111101 in binary (only IRQ 1 enabled)
-    // Or more safely: outb(0x21, inb(0x21) & ~(1 << 1));
+    // Bit 0 corresponds to IRQ0 (PIT) and bit 1 to IRQ1 (keyboard).
+    outb(0x21, 0xFC);
+    outb(0xA1, 0xFF);
 
-    idtp.offset = idt;
+    idtp.offset = (uint32_t)idt;
     idtp.size = (256*8)-1;
+    idt[32] = create_idt_gate((uint32_t)pit_irq_handler, 0x08, create_idt_attributes(true, 0, idt_type_interrupt));
     idt[33] = create_idt_gate((uint32_t)keyboard_interrupt_handler, 0x08, create_idt_attributes(true, 0, idt_type_interrupt));
     load_idt(idtp);
     __asm__ __volatile__ ("sti");

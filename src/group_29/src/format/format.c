@@ -1,4 +1,5 @@
 #include "format.h"
+#include "../memory/heap.h"
 
 static int int_to_str(int32_t value, char* buf) {
     // handle zero explicitly
@@ -53,7 +54,7 @@ static int int_to_str(int32_t value, char* buf) {
     }
 }
 
-const char* format_string(char input_string[], uint16_t input_size, int32_t value) {
+char* format_string(char input_string[], uint16_t input_size, int32_t value) {
     if (!input_string) {
         return NULL;
     }

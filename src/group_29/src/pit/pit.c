@@ -1,41 +1,31 @@
 #include "pit.h"
+#include "../interrupts/interrupts.h"
 
-// global tick counter (THIS IS YOUR KERNEL CLOCK)
 static volatile uint32_t pit_ticks = 0;
 
-// =====================
-// REQUIRED FUNCTIONS
-// =====================
+static void pit_outb(uint16_t port, uint8_t value) {
+    __asm__ __volatile__("outb %0, %1" : : "a"(value), "dN"(port));
+}
 
-uint32_t get_current_tick() {
+uint32_t get_current_tick(void) {
     return pit_ticks;
 }
 
-// IRQ0 handler (called by your IDT entry 32)
-void pit_irq_handler() {
+__attribute__((interrupt))
+__attribute__((target("general-regs-only")))
+void pit_irq_handler(struct interrupt_frame* frame) {
+    (void)frame;
     pit_ticks++;
-
-    // End of interrupt signal to PIC
-    outb(PIC1_CMD_PORT, PIC_EOI);
+    pit_outb(PIC1_CMD_PORT, PIC_EOI);
 }
 
-// =====================
-// PIT INITIALIZATION
-// =====================
-
-void init_pit() {
+void init_pit(void) {
     uint16_t divisor = DIVIDER;
 
-    // Channel 0, lobyte/hibyte, mode 3 (square wave), binary
-    outb(PIT_CMD_PORT, 0x36);
-
-    outb(PIT_CHANNEL0_PORT, (uint8_t)(divisor & 0xFF));
-    outb(PIT_CHANNEL0_PORT, (uint8_t)((divisor >> 8) & 0xFF));
+    pit_outb(PIT_CMD_PORT, 0x36);
+    pit_outb(PIT_CHANNEL0_PORT, (uint8_t)(divisor & 0xFFU));
+    pit_outb(PIT_CHANNEL0_PORT, (uint8_t)((divisor >> 8) & 0xFFU));
 }
-
-// =====================
-// SLEEP (INTERRUPT)
-// =====================
 
 void sleep_interrupt(uint32_t milliseconds) {
     uint32_t start = get_current_tick();
@@ -43,14 +33,9 @@ void sleep_interrupt(uint32_t milliseconds) {
     uint32_t end = start + ticks_to_wait;
 
     while (get_current_tick() < end) {
-        asm volatile("sti");
-        asm volatile("hlt");
+        __asm__ __volatile__("sti; hlt");
     }
 }
-
-// =====================
-// SLEEP (BUSY WAIT)
-// =====================
 
 void sleep_busy(uint32_t milliseconds) {
     uint32_t start = get_current_tick();

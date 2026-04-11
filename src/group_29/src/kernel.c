@@ -5,6 +5,7 @@
 #include "gdt/gdt.h"
 #include "interrupts/interrupts.h"
 #include "memory/heap.h"
+#include "pit/pit.h"
 #include "vga_text_mode_interface/vga_text_mode_interface.h"
 #include "format/format.h"
 
@@ -21,6 +22,7 @@ struct multiboot_info {
 int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     (void)magic;
     (void)mb_info_addr;
+    uint32_t counter = 0U;
 
     gdt_init();
     // char a[]= "Hello World!!";
@@ -46,11 +48,13 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     screen.Print(&screen, "IDT is initilalized\n\n", VgaColor(vga_black, vga_white));
 
     init_kernel_memory(&end);
+    init_paging();
+    print_memory_layout();
+    init_pit();
 
     // Memory test:
     MemoryDebugData debug_data = get_memory_layout();
     screen.Print(&screen, debug_data.formatted, VgaColor(vga_black, vga_light_magenta));
-    // print_memory_layout();
 
     void* first_block = malloc(128U);
     void* second_block = malloc(256U);
@@ -70,17 +74,44 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
         screen.Print(&screen, "free() reuse failed\n\n", VgaColor(vga_black, vga_light_red));
     }
 
-    char input = "Testing formatting! -192: %d!\n";
+    char input[] = "Testing formatting! -192: %d!\n";
 
     char* output = format_string(input, 31, -192);
     // screen.Print(&screen, output, VgaColor(vga_black, vga_white));
 
     free((void*)output);
 
-    // Test how the os handels overflow:
-    // while(1){screen.Print(&screen, "aaaaaaaaaaaaaaaaaaaaaa", VgaColor(vga_white, vga_black));}
-    
-    //Dont let the OS insta-reboot
-    while(1){}
+    while (true) {
+        char* busy_start = format_string("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", 45, (int32_t)counter);
+        if (busy_start != NULL) {
+            screen.Print(&screen, busy_start, VgaColor(vga_white, vga_black));
+            free((void*)busy_start);
+        }
+
+        sleep_busy(1000U);
+
+        char* busy_done = format_string("[%d]: Slept using busy-waiting.\n", 33, (int32_t)counter);
+        if (busy_done != NULL) {
+            screen.Print(&screen, busy_done, VgaColor(vga_light_green, vga_black));
+            free((void*)busy_done);
+        }
+        ++counter;
+
+        char* interrupt_start = format_string("[%d]: Sleeping with interrupts (LOW CPU).\n", 44, (int32_t)counter);
+        if (interrupt_start != NULL) {
+            screen.Print(&screen, interrupt_start, VgaColor(vga_light_cyan, vga_black));
+            free((void*)interrupt_start);
+        }
+
+        sleep_interrupt(1000U);
+
+        char* interrupt_done = format_string("[%d]: Slept using interrupts.\n", 31, (int32_t)counter);
+        if (interrupt_done != NULL) {
+            screen.Print(&screen, interrupt_done, VgaColor(vga_light_green, vga_black));
+            free((void*)interrupt_done);
+        }
+        ++counter;
+    }
+
     return 0;
 }
