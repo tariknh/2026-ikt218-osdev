@@ -61,6 +61,7 @@ add_executable(uiaos-kernel
 	src/multiboot2.asm # TODO: Add multiboot2 support
     src/kernel.c
 	src/gdt/gdt.c
+	src/memory/heap.c
 	src/interrupts/interrupts.c
 	src/vga_text_mode_interface/vga_text_mode_interface.c
 )
