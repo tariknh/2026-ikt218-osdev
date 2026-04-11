@@ -4,10 +4,9 @@
 int32_t strlen(const char string[]);
 static int int_to_str(int32_t value, char* buf);
 
-/// @brief Formats a string with an int32_t
+/// @brief Adds a number to a string by using '%d' as placeholder.
 ///
 /// @param input_string A pointer to the start of the string you want to format. Include '%d' as a placeholder for the value.
-/// @param input_size Size of the input char array.
 /// @param value The value you want to include in the string. Use '%d' to specify where it should be.
 ///
 /// @returns Pointer to a malloc'd char array with the formatted string.
