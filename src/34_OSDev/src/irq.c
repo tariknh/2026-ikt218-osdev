@@ -1,5 +1,7 @@
 #include "irq.h"
 #include "terminal.h"
+#include "pit.h"
+
 
 //master and slave PIC port addresses
 #define PIC1_COMMAND 0x20
@@ -64,6 +66,10 @@ void init_irq(void) {
 }
 
 void irq_handler(uint32_t irq_number) {
+    //call pit_tick on every timer interrupt to update the tick counter
+    if (irq_number == 0) {
+        pit_tick();
+    }
     if (irq_number == 1) {
         uint8_t scancode = inb(0x60); //read scancode from keyboard port
         if (scancode < 128) { //ignore key release events (bit 7 set)
