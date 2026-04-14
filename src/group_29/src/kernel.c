@@ -9,7 +9,7 @@
 #include "pit/pit.h"
 #include "sound/song_player.h"
 #include "vga_text_mode_interface/vga_text_mode_interface.h"
-#include "format/format.h"
+#include "string/string.h"
 #include "printing/printing.h"
 
 extern uint32_t end;
