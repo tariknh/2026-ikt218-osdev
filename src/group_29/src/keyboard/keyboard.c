@@ -146,7 +146,7 @@ static void print_keyboard_char(char value) {
 
     {
         char output[2] = {value, 0};
-        print(output, VgaColor(vga_black, vga_white));
+        print_color(output, VgaColor(vga_black, vga_white));
     }
 }
 
