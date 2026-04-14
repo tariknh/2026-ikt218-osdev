@@ -1,277 +1,291 @@
 #include "keyboard.h"
-#include "stdbool.h"
 
-void push_scancode_buffer(scancode_buffer_t *buffer, uint8_t scancode)
+#include "../printing/printing.h"
+
+enum {
+    KEYCODE_BACKSPACE = 0x0E,
+    KEYCODE_ENTER = 0x1C,
+    KEYCODE_LEFT_SHIFT = 0x2A,
+    KEYCODE_RIGHT_SHIFT = 0x36,
+    KEYCODE_CAPS_LOCK = 0x3A,
+};
+
+typedef struct {
+    char buffer[KEYBOARD_BUFFER_SIZE];
+    uint16_t head;
+    uint16_t tail;
+    uint16_t count;
+} ascii_buffer_t;
+
+static scancode_buffer_t scancode_buffer;
+static keycode_buffer_t keycode_buffer;
+static ascii_buffer_t ascii_buffer;
+static bool left_shift_pressed;
+static bool right_shift_pressed;
+static bool caps_lock_enabled;
+
+static const char keyboard_ascii_map[128] = {
+    ['\x01'] = 0,
+    ['\x02'] = '1', ['\x03'] = '2', ['\x04'] = '3', ['\x05'] = '4',
+    ['\x06'] = '5', ['\x07'] = '6', ['\x08'] = '7', ['\x09'] = '8',
+    ['\x0A'] = '9', ['\x0B'] = '0', ['\x0C'] = '-', ['\x0D'] = '=',
+    ['\x0E'] = '\b', ['\x0F'] = '\t',
+    ['\x10'] = 'q', ['\x11'] = 'w', ['\x12'] = 'e', ['\x13'] = 'r',
+    ['\x14'] = 't', ['\x15'] = 'y', ['\x16'] = 'u', ['\x17'] = 'i',
+    ['\x18'] = 'o', ['\x19'] = 'p', ['\x1A'] = '[', ['\x1B'] = ']',
+    ['\x1C'] = '\n', ['\x1E'] = 'a', ['\x1F'] = 's', ['\x20'] = 'd',
+    ['\x21'] = 'f', ['\x22'] = 'g', ['\x23'] = 'h', ['\x24'] = 'j',
+    ['\x25'] = 'k', ['\x26'] = 'l', ['\x27'] = ';', ['\x28'] = '\'',
+    ['\x29'] = '`', ['\x2B'] = '\\', ['\x2C'] = 'z', ['\x2D'] = 'x',
+    ['\x2E'] = 'c', ['\x2F'] = 'v', ['\x30'] = 'b', ['\x31'] = 'n',
+    ['\x32'] = 'm', ['\x33'] = ',', ['\x34'] = '.', ['\x35'] = '/',
+    ['\x39'] = ' '
+};
+
+static const char keyboard_ascii_shift_map[128] = {
+    ['\x01'] = 0,
+    ['\x02'] = '!', ['\x03'] = '@', ['\x04'] = '#', ['\x05'] = '$',
+    ['\x06'] = '%', ['\x07'] = '^', ['\x08'] = '&', ['\x09'] = '*',
+    ['\x0A'] = '(', ['\x0B'] = ')', ['\x0C'] = '_', ['\x0D'] = '+',
+    ['\x0E'] = '\b', ['\x0F'] = '\t',
+    ['\x10'] = 'Q', ['\x11'] = 'W', ['\x12'] = 'E', ['\x13'] = 'R',
+    ['\x14'] = 'T', ['\x15'] = 'Y', ['\x16'] = 'U', ['\x17'] = 'I',
+    ['\x18'] = 'O', ['\x19'] = 'P', ['\x1A'] = '{', ['\x1B'] = '}',
+    ['\x1C'] = '\n', ['\x1E'] = 'A', ['\x1F'] = 'S', ['\x20'] = 'D',
+    ['\x21'] = 'F', ['\x22'] = 'G', ['\x23'] = 'H', ['\x24'] = 'J',
+    ['\x25'] = 'K', ['\x26'] = 'L', ['\x27'] = ':', ['\x28'] = '"',
+    ['\x29'] = '~', ['\x2B'] = '|', ['\x2C'] = 'Z', ['\x2D'] = 'X',
+    ['\x2E'] = 'C', ['\x2F'] = 'V', ['\x30'] = 'B', ['\x31'] = 'N',
+    ['\x32'] = 'M', ['\x33'] = '<', ['\x34'] = '>', ['\x35'] = '?',
+    ['\x39'] = ' '
+};
+
+static void push_ascii_buffer(char value)
 {
-    *buffer->head = scancode;
-    buffer->head = (buffer->head - buffer->buffer + 1) % 256 + buffer->buffer;
+    if (ascii_buffer.count >= KEYBOARD_BUFFER_SIZE) {
+        return;
+    }
+
+    ascii_buffer.buffer[ascii_buffer.head] = value;
+    ascii_buffer.head = (uint16_t)((ascii_buffer.head + 1U) % KEYBOARD_BUFFER_SIZE);
+    ++ascii_buffer.count;
 }
 
-uint8_t pop_scancode_buffer(scancode_buffer_t *buffer)
+static bool is_letter(char value)
 {
-    uint8_t* tail = (buffer->head - buffer->buffer - 1 + 256) % 256 + buffer->buffer;
-    uint8_t value = *tail;
-    *tail = 0;
+    return value >= 'a' && value <= 'z';
+}
+
+static char uppercase(char value)
+{
+    if (value < 'a' || value > 'z') {
+        return value;
+    }
+
+    return (char)(value - ('a' - 'A'));
+}
+
+static bool shift_active(void)
+{
+    return left_shift_pressed || right_shift_pressed;
+}
+
+static char translate_keycode_to_ascii(keycode_t keycode)
+{
+    char ascii;
+
+    if (keycode.release || keycode.keycode >= 128U) {
+        return 0;
+    }
+
+    ascii = keyboard_ascii_map[keycode.keycode];
+    if (ascii == 0) {
+        return 0;
+    }
+
+    if (is_letter(ascii)) {
+        if (shift_active() != caps_lock_enabled) {
+            return uppercase(ascii);
+        }
+
+        return ascii;
+    }
+
+    if (shift_active()) {
+        return keyboard_ascii_shift_map[keycode.keycode];
+    }
+
+    return ascii;
+}
+
+static void print_keyboard_char(char value)
+{
+    if (value == '\b') {
+        if (main_interface.cursor.memory_position > main_interface.cursor.memory_start) {
+            --main_interface.cursor.memory_position;
+            *main_interface.cursor.memory_position = (uint16_t)(VgaColor(vga_black, vga_white) << 8 | ' ');
+            main_interface.cursor.CalculateRowColFromMemoryPosition(&main_interface.cursor);
+        }
+        return;
+    }
+
+    {
+        char output[2] = {value, 0};
+        print(output, VgaColor(vga_black, vga_white));
+    }
+}
+
+void push_scancode_buffer(scancode_buffer_t* buffer, uint8_t scancode)
+{
+    if (buffer->count >= KEYBOARD_BUFFER_SIZE) {
+        return;
+    }
+
+    buffer->buffer[buffer->head] = scancode;
+    buffer->head = (uint16_t)((buffer->head + 1U) % KEYBOARD_BUFFER_SIZE);
+    ++buffer->count;
+}
+
+uint8_t pop_scancode_buffer(scancode_buffer_t* buffer)
+{
+    uint8_t value;
+
+    if (buffer->count == 0U) {
+        return 0;
+    }
+
+    value = buffer->buffer[buffer->tail];
+    buffer->tail = (uint16_t)((buffer->tail + 1U) % KEYBOARD_BUFFER_SIZE);
+    --buffer->count;
     return value;
 }
 
-scancode_buffer_t create_scancode_buffer()
+scancode_buffer_t create_scancode_buffer(void)
 {
     scancode_buffer_t buffer = {0};
-    buffer.head = buffer.buffer;
+    return buffer;
 }
 
-void push_keycode_buffer(keycode_buffer_t *buffer, keycode_t keycode)
+void push_keycode_buffer(keycode_buffer_t* buffer, keycode_t keycode)
 {
-    *buffer->head = keycode;
-    buffer->head = (buffer->head - buffer->buffer + 1) % 256 + buffer->buffer;
+    if (buffer->count >= KEYBOARD_BUFFER_SIZE) {
+        return;
+    }
+
+    buffer->buffer[buffer->head] = keycode;
+    buffer->head = (uint16_t)((buffer->head + 1U) % KEYBOARD_BUFFER_SIZE);
+    ++buffer->count;
 }
 
-keycode_t pop_keycode_buffer(keycode_buffer_t *buffer)
+keycode_t pop_keycode_buffer(keycode_buffer_t* buffer)
 {
-    keycode_t* tail = (buffer->head - buffer->buffer - 1 + 256) % 256 + buffer->buffer;
-    keycode_t value = *tail;
-    *tail = (keycode_t){0};
+    keycode_t value = {0};
+
+    if (buffer->count == 0U) {
+        return value;
+    }
+
+    value = buffer->buffer[buffer->tail];
+    buffer->tail = (uint16_t)((buffer->tail + 1U) % KEYBOARD_BUFFER_SIZE);
+    --buffer->count;
     return value;
 }
 
-keycode_buffer_t create_keycode_buffer()
+keycode_buffer_t create_keycode_buffer(void)
 {
     keycode_buffer_t buffer = {0};
-    buffer.head = buffer.buffer;
+    return buffer;
 }
 
-void scancode2keycode(scancode_buffer_t *input, keycode_buffer_t *output)
+keycode_t new_keycode(uint16_t keycode, bool release)
 {
-    // This code is generated by a Python script
-keycode_t keycode = {0};
-uint8_t key = pop_scancode_buffer(input);
-switch (key){
-case 0x01: keycode = new_keycode(110,false); break;	/* Esc	down */
-case 0x81: keycode = new_keycode(110,true); break;	/* Esc	up */
-case 0x02: keycode = new_keycode(2,false); break;	/* 1	down */
-case 0x82: keycode = new_keycode(2,true); break;	/* 1	up */
-case 0x03: keycode = new_keycode(3,false); break;	/* 2	down */
-case 0x83: keycode = new_keycode(3,true); break;	/* 2	up */
-case 0x04: keycode = new_keycode(4,false); break;	/* 3	down */
-case 0x84: keycode = new_keycode(4,true); break;	/* 3	up */
-case 0x05: keycode = new_keycode(5,false); break;	/* 4	down */
-case 0x85: keycode = new_keycode(5,true); break;	/* 4	up */
-case 0x06: keycode = new_keycode(6,false); break;	/* 5	down */
-case 0x86: keycode = new_keycode(6,true); break;	/* 5	up */
-case 0x07: keycode = new_keycode(7,false); break;	/* 6	down */
-case 0x87: keycode = new_keycode(7,true); break;	/* 6	up */
-case 0x08: keycode = new_keycode(8,false); break;	/* 7	down */
-case 0x88: keycode = new_keycode(8,true); break;	/* 7	up */
-case 0x09: keycode = new_keycode(9,false); break;	/* 8	down */
-case 0x89: keycode = new_keycode(9,true); break;	/* 8	up */
-case 0x0A: keycode = new_keycode(10,false); break;	/* 9	down */
-case 0x8A: keycode = new_keycode(10,true); break;	/* 9	up */
-case 0x0B: keycode = new_keycode(11,false); break;	/* 0	down */
-case 0x8B: keycode = new_keycode(11,true); break;	/* 0	up */
-case 0x0C: keycode = new_keycode(12,false); break;	/* -	down */
-case 0x8C: keycode = new_keycode(12,true); break;	/* -	up */
-case 0x0D: keycode = new_keycode(13,false); break;	/* =	down */
-case 0x8D: keycode = new_keycode(13,true); break;	/* =	up */
-case 0x0E: keycode = new_keycode(15,false); break;	/* Backspace	down */
-case 0x8E: keycode = new_keycode(15,true); break;	/* Backspace	up */
-case 0x0F: keycode = new_keycode(16,false); break;	/* Tab	down */
-case 0x8F: keycode = new_keycode(16,true); break;	/* Tab	up */
-case 0x10: keycode = new_keycode(17,false); break;	/* q	down */
-case 0x90: keycode = new_keycode(17,true); break;	/* q	up */
-case 0x11: keycode = new_keycode(18,false); break;	/* w	down */
-case 0x91: keycode = new_keycode(18,true); break;	/* w	up */
-case 0x12: keycode = new_keycode(19,false); break;	/* e	down */
-case 0x92: keycode = new_keycode(19,true); break;	/* e	up */
-case 0x13: keycode = new_keycode(20,false); break;	/* r	down */
-case 0x93: keycode = new_keycode(20,true); break;	/* r	up */
-case 0x14: keycode = new_keycode(21,false); break;	/* t	down */
-case 0x94: keycode = new_keycode(21,true); break;	/* t	up */
-case 0x15: keycode = new_keycode(22,false); break;	/* y	down */
-case 0x95: keycode = new_keycode(22,true); break;	/* y	up */
-case 0x16: keycode = new_keycode(23,false); break;	/* u	down */
-case 0x96: keycode = new_keycode(23,true); break;	/* u	up */
-case 0x17: keycode = new_keycode(24,false); break;	/* i	down */
-case 0x97: keycode = new_keycode(24,true); break;	/* i	up */
-case 0x18: keycode = new_keycode(25,false); break;	/* o	down */
-case 0x98: keycode = new_keycode(25,true); break;	/* o	up */
-case 0x19: keycode = new_keycode(26,false); break;	/* p	down */
-case 0x99: keycode = new_keycode(26,true); break;	/* p	up */
-case 0x1A: keycode = new_keycode(27,false); break;	/* [	down */
-case 0x9A: keycode = new_keycode(27,true); break;	/* [	up */
-case 0x1B: keycode = new_keycode(28,false); break;	/* ]	down */
-case 0x9B: keycode = new_keycode(28,true); break;	/* ]	up */
-case 0x1C: keycode = new_keycode(43,false); break;	/* Enter	down */
-case 0x9C: keycode = new_keycode(43,true); break;	/* Enter	up */
-case 0x1D: keycode = new_keycode(58,false); break;	/* Left Ctrl	down */
-case 0x9D: keycode = new_keycode(58,true); break;	/* Left Ctrl	up */
-case 0x1E: keycode = new_keycode(31,false); break;	/* a	down */
-case 0x9E: keycode = new_keycode(31,true); break;	/* a	up */
-case 0x1F: keycode = new_keycode(32,false); break;	/* s	down */
-case 0x9F: keycode = new_keycode(32,true); break;	/* s	up */
-case 0x20: keycode = new_keycode(33,false); break;	/* d	down */
-case 0xA0: keycode = new_keycode(33,true); break;	/* d	up */
-case 0x21: keycode = new_keycode(34,false); break;	/* f	down */
-case 0xA1: keycode = new_keycode(34,true); break;	/* f	up */
-case 0x22: keycode = new_keycode(35,false); break;	/* g	down */
-case 0xA2: keycode = new_keycode(35,true); break;	/* g	up */
-case 0x23: keycode = new_keycode(36,false); break;	/* h	down */
-case 0xA3: keycode = new_keycode(36,true); break;	/* h	up */
-case 0x24: keycode = new_keycode(37,false); break;	/* j	down */
-case 0xA4: keycode = new_keycode(37,true); break;	/* j	up */
-case 0x25: keycode = new_keycode(38,false); break;	/* k	down */
-case 0xA5: keycode = new_keycode(38,true); break;	/* k	up */
-case 0x26: keycode = new_keycode(39,false); break;	/* l	down */
-case 0xA6: keycode = new_keycode(39,true); break;	/* l	up */
-case 0x27: keycode = new_keycode(40,false); break;	/* ;	down */
-case 0xA7: keycode = new_keycode(40,true); break;	/* ;	up */
-case 0x28: keycode = new_keycode(41,false); break;	/* '	down */
-case 0xA8: keycode = new_keycode(41,true); break;	/* '	up */
-case 0x29: keycode = new_keycode(1,false); break;	/* `	down */
-case 0xA9: keycode = new_keycode(1,true); break;	/* `	up */
-case 0x2A: keycode = new_keycode(44,false); break;	/* Left Shift	down */
-case 0xAA: keycode = new_keycode(44,true); break;	/* Left Shift	up */
-case 0x2B: keycode = new_keycode(29,false); break;	/* \	down */
-case 0xAB: keycode = new_keycode(29,true); break;	/* \	up */
-case 0x2C: keycode = new_keycode(46,false); break;	/* z	down */
-case 0xAC: keycode = new_keycode(46,true); break;	/* z	up */
-case 0x2D: keycode = new_keycode(47,false); break;	/* x	down */
-case 0xAD: keycode = new_keycode(47,true); break;	/* x	up */
-case 0x2E: keycode = new_keycode(48,false); break;	/* c	down */
-case 0xAE: keycode = new_keycode(48,true); break;	/* c	up */
-case 0x2F: keycode = new_keycode(49,false); break;	/* v	down */
-case 0xAF: keycode = new_keycode(49,true); break;	/* v	up */
-case 0x30: keycode = new_keycode(50,false); break;	/* b	down */
-case 0xB0: keycode = new_keycode(50,true); break;	/* b	up */
-case 0x31: keycode = new_keycode(51,false); break;	/* n	down */
-case 0xB1: keycode = new_keycode(51,true); break;	/* n	up */
-case 0x32: keycode = new_keycode(52,false); break;	/* m	down */
-case 0xB2: keycode = new_keycode(52,true); break;	/* m	up */
-case 0x33: keycode = new_keycode(53,false); break;	/* ,	down */
-case 0xB3: keycode = new_keycode(53,true); break;	/* ,	up */
-case 0x34: keycode = new_keycode(54,false); break;	/* .	down */
-case 0xB4: keycode = new_keycode(54,true); break;	/* .	up */
-case 0x35: keycode = new_keycode(55,false); break;	/* /	down */
-case 0xB5: keycode = new_keycode(55,true); break;	/* /	up */
-case 0x36: keycode = new_keycode(57,false); break;	/* Right Shift	down */
-case 0xB6: keycode = new_keycode(57,true); break;	/* Right Shift	up */
-case 0x37: keycode = new_keycode(100,false); break;	/* Keypad *	down */
-case 0xB7: keycode = new_keycode(100,true); break;	/* Keypad *	up */
-case 0x38: keycode = new_keycode(60,false); break;	/* Left Alt	down */
-case 0xB8: keycode = new_keycode(60,true); break;	/* Left Alt	up */
-case 0x39: keycode = new_keycode(61,false); break;	/* Spacebar	down */
-case 0xB9: keycode = new_keycode(61,true); break;	/* Spacebar	up */
-case 0x3A: keycode = new_keycode(30,false); break;	/* Caps Lock	down */
-case 0xBA: keycode = new_keycode(30,true); break;	/* Caps Lock	up */
-case 0x3B: keycode = new_keycode(112,false); break;	/* F1	down */
-case 0xBB: keycode = new_keycode(112,true); break;	/* F1	up */
-case 0x3C: keycode = new_keycode(113,false); break;	/* F2	down */
-case 0xBC: keycode = new_keycode(113,true); break;	/* F2	up */
-case 0x3D: keycode = new_keycode(114,false); break;	/* F3	down */
-case 0xBD: keycode = new_keycode(114,true); break;	/* F3	up */
-case 0x3E: keycode = new_keycode(115,false); break;	/* F4	down */
-case 0xBE: keycode = new_keycode(115,true); break;	/* F4	up */
-case 0x3F: keycode = new_keycode(116,false); break;	/* F5	down */
-case 0xBF: keycode = new_keycode(116,true); break;	/* F5	up */
-case 0x40: keycode = new_keycode(117,false); break;	/* F6	down */
-case 0xC0: keycode = new_keycode(117,true); break;	/* F6	up */
-case 0x41: keycode = new_keycode(118,false); break;	/* F7	down */
-case 0xC1: keycode = new_keycode(118,true); break;	/* F7	up */
-case 0x42: keycode = new_keycode(119,false); break;	/* F8	down */
-case 0xC2: keycode = new_keycode(119,true); break;	/* F8	up */
-case 0x43: keycode = new_keycode(120,false); break;	/* F9	down */
-case 0xC3: keycode = new_keycode(120,true); break;	/* F9	up */
-case 0x44: keycode = new_keycode(121,false); break;	/* F10	down */
-case 0xC4: keycode = new_keycode(121,true); break;	/* F10	up */
-case 0x45: keycode = new_keycode(90,false); break;	/* Num Lock	down */
-case 0xC5: keycode = new_keycode(90,true); break;	/* Num Lock	up */
-case 0x46: keycode = new_keycode(125,false); break;	/* Scroll Lock	down */
-case 0xC6: keycode = new_keycode(125,true); break;	/* Scroll Lock	up */
-case 0x47: keycode = new_keycode(91,false); break;	/* Keypad 7	down */
-case 0xC7: keycode = new_keycode(91,true); break;	/* Keypad 7	up */
-case 0x48: keycode = new_keycode(96,false); break;	/* Keypad 8	down */
-case 0xC8: keycode = new_keycode(96,true); break;	/* Keypad 8	up */
-case 0x49: keycode = new_keycode(101,false); break;	/* Keypad 9	down */
-case 0xC9: keycode = new_keycode(101,true); break;	/* Keypad 9	up */
-case 0x4A: keycode = new_keycode(105,false); break;	/* Keypad -	down */
-case 0xCA: keycode = new_keycode(105,true); break;	/* Keypad -	up */
-case 0x4B: keycode = new_keycode(92,false); break;	/* Keypad 4	down */
-case 0xCB: keycode = new_keycode(92,true); break;	/* Keypad 4	up */
-case 0x4C: keycode = new_keycode(97,false); break;	/* Keypad 5	down */
-case 0xCC: keycode = new_keycode(97,true); break;	/* Keypad 5	up */
-case 0x4D: keycode = new_keycode(102,false); break;	/* Keypad 6	down */
-case 0xCD: keycode = new_keycode(102,true); break;	/* Keypad 6	up */
-case 0x4E: keycode = new_keycode(106,false); break;	/* Keypad +	down */
-case 0xCE: keycode = new_keycode(106,true); break;	/* Keypad +	up */
-case 0x4F: keycode = new_keycode(93,false); break;	/* Keypad 1	down */
-case 0xCF: keycode = new_keycode(93,true); break;	/* Keypad 1	up */
-case 0x50: keycode = new_keycode(98,false); break;	/* Keypad 2	down */
-case 0xD0: keycode = new_keycode(98,true); break;	/* Keypad 2	up */
-case 0x51: keycode = new_keycode(103,false); break;	/* Keypad 3	down */
-case 0xD1: keycode = new_keycode(103,true); break;	/* Keypad 3	up */
-case 0x52: keycode = new_keycode(99,false); break;	/* Keypad 0	down */
-case 0xD2: keycode = new_keycode(99,true); break;	/* Keypad 0	up */
-case 0x53: keycode = new_keycode(104,false); break;	/* Keypad .	down */
-case 0xD3: keycode = new_keycode(104,true); break;	/* Keypad .	up */
-case 0x57: keycode = new_keycode(122,false); break;	/* F11	down */
-case 0xD7: keycode = new_keycode(122,true); break;	/* F11	up */
-case 0x58: keycode = new_keycode(123,false); break;	/* F12	down */
-case 0xD8: keycode = new_keycode(123,true); break;	/* F12	up */
-case 0xE0:switch(pop_scancode_buffer(input)){
-case 0x1C: keycode = new_keycode(108,false); break;	/* Keypad Enter	down */
-case 0x9C: keycode = new_keycode(108,true); break;	/* Keypad Enter	up */
-case 0x1D: keycode = new_keycode(64,false); break;	/* Right Ctrl	down */
-case 0x9D: keycode = new_keycode(64,true); break;	/* Right Ctrl	up */
-case 0x35: keycode = new_keycode(95,false); break;	/* Keypad /	down */
-case 0xB5: keycode = new_keycode(95,true); break;	/* Keypad /	up */
-case 0x38: keycode = new_keycode(62,false); break;	/* Right Alt	down */
-case 0xB8: keycode = new_keycode(62,true); break;	/* Right Alt	up */
-case 0x47: keycode = new_keycode(80,false); break;	/* Home	down */
-case 0xC7: keycode = new_keycode(80,true); break;	/* Home	up */
-case 0x48: keycode = new_keycode(83,false); break;	/* Up Arrow	down */
-case 0xC8: keycode = new_keycode(83,true); break;	/* Up Arrow	up */
-case 0x49: keycode = new_keycode(85,false); break;	/* Page Up	down */
-case 0xC9: keycode = new_keycode(85,true); break;	/* Page Up	up */
-case 0x4B: keycode = new_keycode(79,false); break;	/* Left Arrow	down */
-case 0xCB: keycode = new_keycode(79,true); break;	/* Left Arrow	up */
-// case 0x4B: keycode = new_keycode(76,false); break;	/* Delete	down */
-// case 0xCB: keycode = new_keycode(76,true); break;	/* Delete	up */
-case 0x4D: keycode = new_keycode(89,false); break;	/* Right Arrow	down */
-case 0xCD: keycode = new_keycode(89,true); break;	/* Right Arrow	up */
-case 0x4F: keycode = new_keycode(81,false); break;	/* End	down */
-case 0xCF: keycode = new_keycode(81,true); break;	/* End	up */
-case 0x50: keycode = new_keycode(84,false); break;	/* Down Arrow	down */
-case 0xD0: keycode = new_keycode(84,true); break;	/* Down Arrow	up */
-case 0x51: keycode = new_keycode(86,false); break;	/* Page Down	down */
-case 0xD1: keycode = new_keycode(86,true); break;	/* Page Down	up */
-case 0x52: keycode = new_keycode(75,false); break;	/* Insert	down */
-case 0xD2: keycode = new_keycode(75,true); break;	/* Insert	up */
-// Manual code
-case 0x2A: if (pop_scancode_buffer(input) == 0xE0){ if (pop_scancode_buffer(input) == 0x37){
-    keycode_t keycode = new_keycode(124, false);
-    push_keycode_buffer(output, keycode);
-}}
-break;
-case 0xB7: if(pop_scancode_buffer(input) == 0xE0){ if(pop_scancode_buffer(input) == 0xAA){
-    keycode_t keycode = new_keycode(124, true);
-    push_keycode_buffer(output, keycode);
-}}
-break;
+    keycode_t value;
+    value.keycode = keycode;
+    value.release = release;
+    return value;
 }
-case 0xE1: uint8_t key = pop_scancode_buffer(input); switch (key){
-    case 0x1D: if(pop_scancode_buffer(input) == 0x45){
-        keycode_t keycode = new_keycode(126, false);
-        push_keycode_buffer(output, keycode);
-    }
-    break;
-    case 0x9D: if (pop_scancode_buffer(input) == 0xC5){
-        keycode_t keycode = new_keycode(126, true);
-        push_keycode_buffer(output, keycode);
-    }
-// End manual code
-}
-}
-push_keycode_buffer(output, keycode);
-// ^ That code was generated by a Python script
 
+void scancode2keycode(scancode_buffer_t* input, keycode_buffer_t* output)
+{
+    uint8_t scancode;
+    bool release;
+
+    if (input->count == 0U) {
+        return;
+    }
+
+    scancode = pop_scancode_buffer(input);
+    if (scancode == 0xE0U || scancode == 0xE1U) {
+        return;
+    }
+
+    release = (scancode & 0x80U) != 0U;
+    push_keycode_buffer(output, new_keycode((uint16_t)(scancode & 0x7FU), release));
+}
+
+void init_keyboard(void)
+{
+    scancode_buffer = create_scancode_buffer();
+    keycode_buffer = create_keycode_buffer();
+    ascii_buffer.head = 0;
+    ascii_buffer.tail = 0;
+    ascii_buffer.count = 0;
+    left_shift_pressed = false;
+    right_shift_pressed = false;
+    caps_lock_enabled = false;
+}
+
+void keyboard_handle_scancode(uint8_t scancode)
+{
+    keycode_t keycode;
+    char ascii;
+
+    push_scancode_buffer(&scancode_buffer, scancode);
+    scancode2keycode(&scancode_buffer, &keycode_buffer);
+
+    while (keycode_buffer.count > 0U) {
+        keycode = pop_keycode_buffer(&keycode_buffer);
+
+        if (keycode.keycode == KEYCODE_LEFT_SHIFT) {
+            left_shift_pressed = !keycode.release;
+            continue;
+        }
+
+        if (keycode.keycode == KEYCODE_RIGHT_SHIFT) {
+            right_shift_pressed = !keycode.release;
+            continue;
+        }
+
+        if (keycode.keycode == KEYCODE_CAPS_LOCK && !keycode.release) {
+            caps_lock_enabled = !caps_lock_enabled;
+            continue;
+        }
+
+        ascii = translate_keycode_to_ascii(keycode);
+        if (ascii == 0) {
+            continue;
+        }
+
+        push_ascii_buffer(ascii);
+        print_keyboard_char(ascii);
+    }
+}
+
+bool keyboard_has_char(void)
+{
+    return ascii_buffer.count > 0U;
+}
+
+char keyboard_pop_char(void)
+{
+    char value;
+
+    if (ascii_buffer.count == 0U) {
+        return 0;
+    }
+
+    value = ascii_buffer.buffer[ascii_buffer.tail];
+    ascii_buffer.tail = (uint16_t)((ascii_buffer.tail + 1U) % KEYBOARD_BUFFER_SIZE);
+    --ascii_buffer.count;
+    return value;
 }

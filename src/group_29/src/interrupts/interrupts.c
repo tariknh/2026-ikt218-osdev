@@ -1,6 +1,6 @@
 #include "interrupts.h"
+#include "../keyboard/keyboard.h"
 #include "../pit/pit.h"
-#include "../vga_text_mode_interface/vga_text_mode_interface.h"
 
 static struct idt_gate idt[256];
 static struct idt_pointer idtp;
@@ -102,14 +102,12 @@ void init_idt() {
 __attribute__((interrupt))
 __attribute__((target("general-regs-only")))
 void keyboard_interrupt_handler(struct interrupt_frame* frame) {
+    (void)frame;
     keyboard_callback();
 }
 
-// This code is too HEAVY to be inside the keyboard_interupt_handler()
 void keyboard_callback(){
     uint8_t scan = inb(0x60);
-    struct VgaTextModeInterface screen = NewVgaTextModeInterface();
-    char s[2] = {scan, 0};
-    screen.Print(&screen, s, VgaColor(vga_white, vga_black));
+    keyboard_handle_scancode(scan);
     outb(0x20, 0x20); // Send EOI
 }

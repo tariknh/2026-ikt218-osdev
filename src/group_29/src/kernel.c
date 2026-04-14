@@ -4,6 +4,7 @@
 #include <multiboot2.h>
 #include "gdt/gdt.h"
 #include "interrupts/interrupts.h"
+#include "keyboard/keyboard.h"
 #include "memory/heap.h"
 #include "pit/pit.h"
 #include "sound/song_player.h"
@@ -34,6 +35,7 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     write_text_at(VGA_TERMINAL_HEIGHT - 1, 0, "This row and the one above will not be printed/scrolled on", VgaColor(vga_white, vga_black));
 
     gdt_init();
+    init_keyboard();
     // char a[]= "Hello World!!";
     // char* vga_text = (char *) 0xb8000;
     // copyZeroTerminatedCharArrayToEvenPositionsInCharArray((char*)&a, vga_text);
