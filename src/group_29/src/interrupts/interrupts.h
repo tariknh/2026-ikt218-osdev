@@ -41,5 +41,6 @@ struct idt_gate create_idt_gate(uint32_t offset, uint16_t selector, uint8_t attr
 uint8_t create_idt_attributes(bool present, int8_t ring, uint8_t type);
 void pic_remap(int offset1, int offset2);
 void init_idt();
+void trigger_isr_demo(void);
 void keyboard_interrupt_handler(struct interrupt_frame* frame);
 void keyboard_callback();

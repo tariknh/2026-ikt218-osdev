@@ -63,6 +63,9 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     init_idt();
     // screen.Print(&screen, "IDT is initilalized\n\n", VgaColor(vga_black, vga_white));
     print_color("IDT is initilalized\n\n", VgaColor(vga_black, vga_white));
+    print("Triggering software interrupt demo...\n", VgaColor(vga_black, vga_light_cyan));
+    trigger_isr_demo();
+    print("IRQ0-IRQ15 handlers are installed. IRQ0 and IRQ1 are unmasked.\n\n", VgaColor(vga_black, vga_light_cyan));
 
     init_kernel_memory(&end);
     init_paging();
