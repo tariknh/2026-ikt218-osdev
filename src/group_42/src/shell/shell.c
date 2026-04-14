@@ -17,6 +17,7 @@
 #include "shell/commands/print_memory.h"
 #include "shell/commands/timer_test.h"
 #include "shell/shell_command.h"
+#include "shell/commands/loadkeys.h"
 
 int cmd_test_syscalls(int argc, char** argv);
 
@@ -47,7 +48,8 @@ const shell_command_t command_table[] = {
     {   "print_memory",       "Print current memory layout",    cmd_print_memory},
     {     "timer_test",               "Run timer test IRQ0",      cmd_timer_test},
     {   "music_player", "Play a song (music_player <song>)",    cmd_music_player},
-    {  "test_syscalls",           "Test syscall handlers directly",    cmd_test_syscalls}
+    {  "test_syscalls",           "Test syscall handlers directly",    cmd_test_syscalls},
+  {         "loadkeys",         "Load keys locale [no, us]",       cmd_loadkeys}
 };
 const size_t NUM_COMMANDS = sizeof(command_table) / sizeof(command_table[0]);
 

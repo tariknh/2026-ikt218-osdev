@@ -88,10 +88,13 @@ add_executable(group_42-kernel
         src/shell/commands/print_memory.c
         src/shell/commands/music_player.c
         src/shell/commands/test_syscalls.c
+        src/shell/commands/loadkeys.c
 
 
         src/drivers/input/keyboard.c
+        src/drivers/input/keymap.c
         src/drivers/input/keymap_us.c
+        src/drivers/input/keymap_no.c
 
         src/arch/i386/cpu/gdt.c
         src/arch/i386/cpu/gdt_routines.asm

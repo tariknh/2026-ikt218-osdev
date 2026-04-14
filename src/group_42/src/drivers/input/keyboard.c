@@ -206,6 +206,7 @@ void init_keyboard() {
   rb_init(&special_buffer);
 
   register_interrupt_handler(IRQ1, keyboard_handler);
+  set_keymap("us");
 }
 
 void keyboard_set_scancode_set2() {
