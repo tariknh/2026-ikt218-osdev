@@ -133,7 +133,7 @@ static void shell_submit_current_line(void) {
         }
 
         if (result == COMMAND_ARGUMENT_USERNAME_TOO_LONG) {
-            const char* message = format_string(" Username too long! Max length: %d characters\n", USER_MAX_USERNAME_LENGTH);
+            char* message = format_string(" Username too long! Max length: %d characters\n", USER_MAX_USERNAME_LENGTH);
             print_color(message, VgaColor(vga_black, vga_light_red));
             // shell_print_failure_message(message, shell_state.submitted_line);
             free(message);
