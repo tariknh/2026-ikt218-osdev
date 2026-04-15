@@ -6,6 +6,7 @@
 #include <memory.h>
 #include <keyboard.h>
 #include <pit.h>
+#include <song.h>
 
 
 /* ───────────────────────────────────────────────────────────────
@@ -175,15 +176,9 @@ void main(void)
     printf("memory2:     0x%x\n", (uint32_t)memory2);
     printf("memory3:     0x%x\n", (uint32_t)memory3);
 
-    // PIT sleep evaluation loop 
-    int counter = 0;
-    while (1) {
-        printf("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", counter);
-        sleep_busy(1000);
-        printf("[%d]: Slept using busy-waiting.\n", counter++);
+    printf("Starting music player...\n");
+    play_music();
 
-        printf("[%d]: Sleeping with interrupts (LOW CPU).\n", counter);
-        sleep_interrupt(1000);
-        printf("[%d]: Slept using interrupts.\n", counter++);
-    }
+    while (1)
+        __asm__ volatile("hlt");
 }

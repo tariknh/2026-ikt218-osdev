@@ -11,13 +11,6 @@ static uint8_t keyboard_scancode_buffer[KEYBOARD_BUFFER_SIZE];
 static char keyboard_ascii_buffer[KEYBOARD_BUFFER_SIZE];
 static uint16_t keyboard_buffer_write_index = 0;
 
-static inline uint8_t inb(uint16_t port)
-{
-    uint8_t value;
-    __asm__ volatile ("inb %1, %0" : "=a"(value) : "Nd"(port));
-    return value;
-}
-
 static void append_uint(char *buf, uint32_t value)
 {
     char tmp[11];

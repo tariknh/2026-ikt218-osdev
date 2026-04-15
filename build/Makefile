@@ -395,6 +395,30 @@ src/printf.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/printf.c.s
 .PHONY : src/printf.c.s
 
+src/song.o: src/song.c.o
+.PHONY : src/song.o
+
+# target to build an object file
+src/song.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/song.c.o
+.PHONY : src/song.c.o
+
+src/song.i: src/song.c.i
+.PHONY : src/song.i
+
+# target to preprocess a source file
+src/song.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/song.c.i
+.PHONY : src/song.c.i
+
+src/song.s: src/song.c.s
+.PHONY : src/song.s
+
+# target to generate assembly for a file
+src/song.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/song.c.s
+.PHONY : src/song.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -436,6 +460,9 @@ help:
 	@echo "... src/printf.o"
 	@echo "... src/printf.i"
 	@echo "... src/printf.s"
+	@echo "... src/song.o"
+	@echo "... src/song.i"
+	@echo "... src/song.s"
 .PHONY : help
 
 
