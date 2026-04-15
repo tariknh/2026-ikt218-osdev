@@ -67,3 +67,15 @@ int32_t str_to_int_checked(const char str[], int* ok);
 /// @returns Pointer to a malloc'd char array with the formatted string.
 /// @warning Remember to free() the char array pointer after use.
 char* format_string(char input_string[], int32_t value);
+
+
+/// @brief Copies a null-terminated string into a fixed-size buffer.
+///
+/// Copies `input` into `output` if it fits within `output_length`.
+///
+/// @param input Source null-terminated string.
+/// @param output Destination buffer.
+/// @param output_length Size of the destination buffer.
+///
+/// @return 0 on success, -1 if the input string does not fit.
+int16_t string_copy(const char input[], char output[], int16_t output_length);

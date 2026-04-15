@@ -72,6 +72,7 @@ add_executable(uiaos-kernel
 	src/printing/printing.c
 	src/command/command.c
 	src/string/string.c
+	src/user/user.c
 )
 
 # Include directories for the kernel target

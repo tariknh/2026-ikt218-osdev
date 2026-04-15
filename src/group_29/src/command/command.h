@@ -3,6 +3,7 @@
 #include "../string/string.h"
 #include "../printing/printing.h"
 #include "../libc/stdint.h"
+#include "../user/user.h"
 
 #define MAX_ARGS 10
 
@@ -20,9 +21,6 @@ typedef struct {
     CommandFunction command_function;
 } CommandEntry;
 
-/// @brief Displays the shell prompt
-void display_command_input(const char username[]);
-
 /// @brief Parses input into arguments (argument_count/argument_count style)
 int parse_command_aguments(char* input, char* arguments[], int max_args);
 
@@ -39,3 +37,6 @@ int run_command(char* input);
 
 /// @brief Print user input to screen
 int command_echo(int argument_count, char* arguments[]);
+
+/// @brief sets the username of user
+int8_t command_set_username(int argument_count, char* arguments[]);

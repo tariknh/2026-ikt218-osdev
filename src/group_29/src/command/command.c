@@ -1,7 +1,8 @@
 #include "command.h"
 
 static CommandEntry commands[] = {
-    { "echo", command_echo }
+    { "echo", command_echo },
+    { "setusername", command_set_username }
 };
 
 static const int command_count = sizeof(commands) / sizeof(commands[0]);
@@ -9,8 +10,9 @@ static const int command_count = sizeof(commands) / sizeof(commands[0]);
 
 // Commands
 
-int command_echo(int argument_count, char *arguments[])
-{
+int command_echo(int argument_count, char *arguments[]) {
+    print(" ");
+
     for (int i = 1; i < argument_count; i++) {
         print(arguments[i]);
 
@@ -20,6 +22,15 @@ int command_echo(int argument_count, char *arguments[])
     }
 
     print("\n");
+    return 0;
+}
+
+int8_t command_set_username(int argument_count, char* arguments[]) {
+    if (argument_count > 2) {
+        return -1;
+    }
+
+    user_set_username(arguments[1]);
     return 0;
 }
 
@@ -41,11 +52,6 @@ int run_command(char* input) {
     return handle_command(argument_count, arguments);
 }
 
-
-void display_command_input(const char username[]) {
-    print(username);
-    print("> ");
-}
 
 int handle_command(int argument_count, char* arguments[]) {
     if (argument_count == 0) {
