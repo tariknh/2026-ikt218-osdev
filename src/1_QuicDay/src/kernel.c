@@ -12,6 +12,8 @@
 #include "pit.h"
 #include "libc/string.h"
 
+#include "../quicmusic/song.h";
+
 extern uint32_t end;
 
 
@@ -123,7 +125,9 @@ int main(uint32_t myStruct, uint32_t magic, struct multiboot_info* mb_info_addr)
     sleep_interrupt(SCREEN_PAUSE_MS);
     wait_for_user_next_screen();
 
-    printf("PIT timing test complete. System halted for inspection.\n");
+    printf("PIT timing test complete. Playing music....\n");
+
+
     halt_forever();
 
     return 0;
