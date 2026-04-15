@@ -1,4 +1,4 @@
-# Install script for directory: /workspaces/ikt218/src/28_lazarOS
+# Install script for directory: /workspaces/IKT218/src/28_lazarOS
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/workspaces/ikt218/build/28_lazarOS/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/workspaces/IKT218/build/28_lazarOS/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
