@@ -1,3 +1,21 @@
+# Building (within dev container)
+
+## Clean + full configure:
+bash src/28_lazarOS/scripts/dev_cycle.sh --clean --configure
+## Build only (no QEMU launch):
+bash src/28_lazarOS/scripts/dev_cycle.sh --no-run
+
+## Start with GDB stub:
+bash src/28_lazarOS/scripts/dev_cycle.sh --debug
+
+## Choose run mode
+bash src/28_lazarOS/scripts/dev_cycle.sh --mode curses
+bash src/28_lazarOS/scripts/dev_cycle.sh --mode headless
+bash src/28_lazarOS/scripts/dev_cycle.sh --mode gui
+
+## Help:
+bash src/28_lazarOS/scripts/dev_cycle.sh --help
+
 # IKT218 - Operating System Development Course Repository
 
 Welcome to the University of Agder's IKT218 course repository. This platform is crucial for students involved in our Operating System Development lab assignments. At the semester's end, students will add their operating system projects to this repository, creating a diverse showcase of their work.

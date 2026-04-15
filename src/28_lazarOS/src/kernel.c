@@ -157,16 +157,16 @@ void main(void)
     init_paging();
     print_memory_layout();
 
-    /* Initialize the Programmable Interval Timer */
+    //Initialize the Programmable Interval Timer
     init_pit();
 
-    /* 2. Initialise the text-mode terminal */
+    // 2. Initialise the text-mode terminal 
     terminal_clear();
 
-    /* 3. Print the required greeting */
+    // 3. Print the required greeting 
     printf("Hello World!\n");
 
-    /* Test memory allocation */
+    // Test memory allocation 
     void* some_memory = malloc(12345);
     void* memory2 = malloc(54321);
     void* memory3 = malloc(13331);
@@ -175,7 +175,7 @@ void main(void)
     printf("memory2:     0x%x\n", (uint32_t)memory2);
     printf("memory3:     0x%x\n", (uint32_t)memory3);
 
-    /* PIT sleep evaluation loop */
+    // PIT sleep evaluation loop 
     int counter = 0;
     while (1) {
         printf("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", counter);

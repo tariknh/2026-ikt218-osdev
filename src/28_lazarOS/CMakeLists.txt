@@ -4,6 +4,24 @@
 # Tip: Use Ctrl+Shift+P in Visual Studio Code to get started with CMake.
 ########################################
 
+# Prefer the course cross-compilers when default host compilers are unavailable.
+if(NOT DEFINED CMAKE_C_COMPILER)
+	find_program(UIAOS_C_COMPILER NAMES i686-elf-gcc x86_64-elf-gcc)
+	if(UIAOS_C_COMPILER)
+		set(CMAKE_C_COMPILER "${UIAOS_C_COMPILER}")
+	endif()
+endif()
+
+if(NOT DEFINED CMAKE_CXX_COMPILER)
+	find_program(UIAOS_CXX_COMPILER NAMES i686-elf-g++ x86_64-elf-g++)
+	if(UIAOS_CXX_COMPILER)
+		set(CMAKE_CXX_COMPILER "${UIAOS_CXX_COMPILER}")
+	endif()
+endif()
+
+# Use static-library try-compile checks for freestanding toolchains.
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 # Skip compiler self-tests (saves time, avoids errors with some cross compilers)
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
