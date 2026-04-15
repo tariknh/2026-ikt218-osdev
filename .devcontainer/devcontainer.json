@@ -36,13 +36,18 @@
 	////////////////////////////////////
 	// Windows Setup (WSL2)
 	////////////////////////////////////
-    "mounts": [
-		"source=/mnt/wslg,target=/mnt/wslg,type=bind,consistency=cached"
-    ],
-	"containerEnv": {
-		"DISPLAY": "${localEnv:DISPLAY}",
-		"PULSE_SERVER": "/mnt/wslg/PulseServer"
-	},
+	// NOTE:
+	// The WSLg mount below can fail with:
+	// "a mount config is invalid ... source folder"
+	// if /mnt/wslg is not available on the Docker host.
+	// Uncomment only if your host has that path.
+	//"mounts": [
+	//	"source=/mnt/wslg,target=/mnt/wslg,type=bind,consistency=cached"
+	//],
+	//"containerEnv": {
+	//	"DISPLAY": "${localEnv:DISPLAY}",
+	//	"PULSE_SERVER": "/mnt/wslg/PulseServer"
+	//},
 
 
 	////////////////////////////////////
