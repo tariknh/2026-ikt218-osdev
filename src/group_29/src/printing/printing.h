@@ -2,6 +2,7 @@
 
 #include "../vga_text_mode_interface/vga_text_mode_interface.h"
 #include "../memory/memory_macros.h"
+#include "libc/stdint.h"
 
 #define TEMP VGA_TERMINAL_WIDTH * sizeof(uint16_t) * 2
 

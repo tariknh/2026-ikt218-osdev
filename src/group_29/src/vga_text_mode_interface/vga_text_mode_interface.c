@@ -1,5 +1,9 @@
 #include "./vga_text_mode_interface.h"
 
+static void outb(uint16_t port, uint8_t value) {
+    __asm__ __volatile__("outb %0, %1" : : "a"(value), "Nd"(port));
+}
+
 void VgaTextModeInterfacePrint(struct VgaTextModeInterface* a, char* input, uint8_t attribute) {
     while (*input != 0 && (a->cursor.memory_position < a->cursor.memory_end)) {
         if (*input == '\n') {
@@ -19,9 +23,18 @@ void VgaTextModeInterfacePrint(struct VgaTextModeInterface* a, char* input, uint
 }
 
 void VgaTextModeCursorCalculateRowColFromMemoryPosition(struct VgaTextModeCursor* c){
-    uint32_t z = (uint32_t)c->memory_position - (uint32_t)c->memory_start;
+    uint32_t z = (uint32_t)(c->memory_position - c->memory_start);
     c->row = z / VGA_TERMINAL_WIDTH;
     c->col = z % VGA_TERMINAL_WIDTH;
+}
+
+void VgaTextModeCursorSyncHardware(struct VgaTextModeCursor* c) {
+    uint16_t position = (uint16_t)(c->memory_position - c->memory_start);
+
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t)(position & 0xFFU));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t)((position >> 8) & 0xFFU));
 }
 
 struct VgaTextModeInterface NewVgaTextModeInterface(){

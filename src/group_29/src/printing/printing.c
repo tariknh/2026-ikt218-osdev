@@ -4,6 +4,8 @@ struct VgaTextModeInterface main_interface;
 
 void init_vga_interface_for_printing() {
     main_interface = NewVgaTextModeInterface();
+    main_interface.cursor.CalculateRowColFromMemoryPosition(&(main_interface.cursor));
+    VgaTextModeCursorSyncHardware(&(main_interface.cursor));
 }
 
 
@@ -30,6 +32,8 @@ void scroll_screen() {
 
     // Reset the cursor to the new last row before the unused bottom margin
     main_interface.cursor.memory_position = screen_start + ((VGA_TERMINAL_HEIGHT - VGA_MARGIN_BOTTOM_ROWS - 1) * VGA_TERMINAL_WIDTH);
+    main_interface.cursor.CalculateRowColFromMemoryPosition(&(main_interface.cursor));
+    VgaTextModeCursorSyncHardware(&(main_interface.cursor));
 }
 
 void print_color(const char string[], uint8_t color_bitmap) {
@@ -60,6 +64,7 @@ void print_color(const char string[], uint8_t color_bitmap) {
 
     // After printing, update the cursor position
     main_interface.cursor.CalculateRowColFromMemoryPosition(&(main_interface.cursor));
+    VgaTextModeCursorSyncHardware(&(main_interface.cursor));
 }
 
 void print(const char string[]) {

@@ -140,6 +140,7 @@ static void print_keyboard_char(char value) {
             --main_interface.cursor.memory_position;
             *main_interface.cursor.memory_position = (uint16_t)(VgaColor(vga_black, vga_white) << 8 | ' ');
             main_interface.cursor.CalculateRowColFromMemoryPosition(&main_interface.cursor);
+            VgaTextModeCursorSyncHardware(&main_interface.cursor);
         }
         return;
     }

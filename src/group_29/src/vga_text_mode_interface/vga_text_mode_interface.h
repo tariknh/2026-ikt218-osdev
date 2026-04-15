@@ -92,5 +92,7 @@ void VgaTextModeInterfacePrint(struct VgaTextModeInterface* a, char* input, uint
  * \todo Check that this works correctly
  */
 void VgaTextModeCursorCalculateRowColFromMemoryPosition(struct VgaTextModeCursor* c);
+/** \brief Updates the VGA hardware cursor to the current text cell. */
+void VgaTextModeCursorSyncHardware(struct VgaTextModeCursor* c);
 /** \brief Initialises a VgaTextModeInterface and returns it. */
 struct VgaTextModeInterface NewVgaTextModeInterface();
