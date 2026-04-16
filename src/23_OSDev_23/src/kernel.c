@@ -8,6 +8,9 @@
 #include "memory.h"
 #include "paging.h"
 #include "pit.h"
+#include "songs/frequencies.h"
+#include "songs/song.h"
+#include "SongPlayer.h"
 
 // This symbol is exported by arch/i386/linker.ld
 extern uint32_t end;
@@ -157,6 +160,8 @@ void terminal_writestring(const char* data)
 	terminal_write(data, strlen(data));
 }
 
+//--------------------------------------------------------------------------------//
+
 // Simple printf supporting %s, %d, %u, %x
 void printf(const char* fmt, ...) {
     // Minimal varargs implementation
@@ -202,6 +207,32 @@ void printf(const char* fmt, ...) {
 
     __builtin_va_end(args);
 }
+//--------------------------- MUSIC -------------------------------//
+/*Code from assignment with small changes*/
+
+
+// Define function prototype for play_song_impl
+void play_song_impl(struct Song* song);
+
+// Define Song structure
+typedef struct {
+    Note* notes;
+    size_t length;
+} Song;
+
+// Define SongPlayer structure
+typedef struct {
+    void (*play_song)(Song* song);
+} SongPlayer;
+
+// Outside of main
+SongPlayer* create_song_player() {
+    SongPlayer* player = (SongPlayer*)malloc(sizeof(SongPlayer));
+    player->play_song = play_song_impl;
+    return player;
+}
+
+//-----------------------------------------------------------------//
 
 void main(){
     // Initialize the monitor (screen output)
@@ -273,6 +304,30 @@ void main(){
         sleep_interrupt(1000);
         printf("[%d]: Slept using interrupts.\n", counter++);
     }*/
+
+
+    // MUSIC 
+    void play_music() {
+    // How to play music
+    Song songs[] = {
+        {music_1, sizeof(music_1) / sizeof(Note)}
+    };
+    uint32_t n_songs = sizeof(songs) / sizeof(Song);
+
+    SongPlayer* player = create_song_player();
+
+    while(1) {
+        for(uint32_t i = 0; i < n_songs; i++) {
+            printf("Playing Song...\n");
+            player->play_song(&songs[i]);
+            printf("Finished playing the song.\n");
+        }
+    }
+    
+    // Note: This code will never reach here due to infinite loop,
+    // but good practice would be to free the player when done:
+    // free(player);
+    }
 
     for(;;);
 }
