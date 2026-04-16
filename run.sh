@@ -4,7 +4,6 @@ BUILD_DIR="/workspaces/2026-ikt218-osdev-4/src/OSDev4/build"
 
 echo "==> Stopping any running QEMU..."
 kill -9 $(pgrep qemu) 2>/dev/null
-pkill -f novnc_proxy 2>/dev/null
 sleep 1
 
 echo "==> Building kernel..."

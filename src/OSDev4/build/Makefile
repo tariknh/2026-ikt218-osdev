@@ -443,6 +443,30 @@ src/serial.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/serial.c.s
 .PHONY : src/serial.c.s
 
+src/songplayer.o: src/songplayer.cpp.o
+.PHONY : src/songplayer.o
+
+# target to build an object file
+src/songplayer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/songplayer.cpp.o
+.PHONY : src/songplayer.cpp.o
+
+src/songplayer.i: src/songplayer.cpp.i
+.PHONY : src/songplayer.i
+
+# target to preprocess a source file
+src/songplayer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/songplayer.cpp.i
+.PHONY : src/songplayer.cpp.i
+
+src/songplayer.s: src/songplayer.cpp.s
+.PHONY : src/songplayer.s
+
+# target to generate assembly for a file
+src/songplayer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/songplayer.cpp.s
+.PHONY : src/songplayer.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -490,6 +514,9 @@ help:
 	@echo "... src/serial.o"
 	@echo "... src/serial.i"
 	@echo "... src/serial.s"
+	@echo "... src/songplayer.o"
+	@echo "... src/songplayer.i"
+	@echo "... src/songplayer.s"
 .PHONY : help
 
 

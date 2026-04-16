@@ -7,6 +7,11 @@
 #include "memory.h"
 #include "pit.h"
 #include "printf.h"
+#include "song/song.h"
+
+void play_song_impl(Song* song);
+
+SongPlayer* create_song_player(void);
 
 extern uint32_t end;
 
@@ -97,15 +102,22 @@ int main(uint32_t magic, void* mboot_info)
     (void)memory3;
     terminal_write("Memory allocated successfully.\n");
 
-    int counter = 0;
-    while(1) {
-        printf("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", counter);
-        sleep_busy(1000);
-        printf("[%d]: Slept using busy-waiting.\n", counter++);
+    Song songs[] = {
+        {music_1, sizeof(music_1) / sizeof(Note)},
+        {starwars_theme, sizeof(starwars_theme) / sizeof(Note)},
+        {battlefield_1942_theme, sizeof(battlefield_1942_theme) / sizeof(Note)}
+    };
+    uint32_t n_songs = sizeof(songs) / sizeof(Song);
 
-        printf("[%d]: Sleeping with interrupts (LOW CPU).\n", counter);
-        sleep_interrupt(1000);
-        printf("[%d]: Slept using interrupts.\n", counter++);
+    SongPlayer* player = create_song_player();
+
+    while(1) {
+        uint32_t i;
+        for(i = 0; i < n_songs; i++) {
+            printf("Playing Song %d...\n", i);
+            player->play_song(&songs[i]);
+            printf("Finished playing the song.\n");
+        }
     }
 
     return 0;

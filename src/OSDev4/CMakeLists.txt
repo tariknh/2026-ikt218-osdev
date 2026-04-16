@@ -72,10 +72,11 @@ add_executable(uiaos-kernel
     src/memory/memutils.c
     src/pit.c
     src/printf.c
+    src/songplayer.cpp
 )
 
 # Include directories for the kernel target
-target_include_directories(uiaos-kernel PUBLIC include include/libc)
+target_include_directories(uiaos-kernel PUBLIC include include/libc include/song)
 
 
 # Specify compile options for C and C++
