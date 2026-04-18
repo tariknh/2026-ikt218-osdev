@@ -36,6 +36,12 @@ typedef struct {
 } CommandEntry;
 
 
+typedef struct {
+    uint8_t name;
+    uint8_t options;
+    uint8_t description;
+} CommandColors;
+
 // Commands
 
 /// @brief Displays all commands

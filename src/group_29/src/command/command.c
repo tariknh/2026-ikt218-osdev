@@ -17,18 +17,35 @@ static const int command_count = sizeof(commands) / sizeof(commands[0]);
 
 // static functions
 
+static CommandColors get_command_colors() {
+    CommandColors colors;
+    colors.name = VgaColor(vga_black, vga_light_gray);
+    colors.options = VgaColor(vga_black, vga_dark_gray);
+    colors.description = VgaColor(vga_black, vga_white);
+
+    return colors;
+}
+
 static void display_help_header() {
-    print(" ---- Help menu ----\n");
-    print(" <command> [options]: <description>\n\n");
+    const CommandColors colors = get_command_colors();
+
+    // print_color(" <command> [options]: <description>");
+
+    print_color(" <command> ", colors.name);
+    print_color(" [options]", colors.options);
+    print_color(" <description>\n", colors.description);
+    print_color(" ----------------------------------------\n", colors.options);
 }
 
 static void display_command_info(const char name[], const char options[], const char description[]) {
+    const CommandColors colors = get_command_colors();
+    
     print(" ");
-    print(name);
+    print_color(name, colors.name);
     print(" ");
-    print(options);
-    print(": ");
-    print(description);
+    print_color(options, colors.options);
+    print_color(": ", VgaColor(vga_black, vga_white));
+    print_color(description, colors.description);
     print("\n");
 }
 
