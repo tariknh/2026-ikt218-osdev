@@ -211,6 +211,30 @@ src/idt.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/idt.c.s
 .PHONY : src/idt.c.s
 
+src/input.o: src/input.c.o
+.PHONY : src/input.o
+
+# target to build an object file
+src/input.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/input.c.o
+.PHONY : src/input.c.o
+
+src/input.i: src/input.c.i
+.PHONY : src/input.i
+
+# target to preprocess a source file
+src/input.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/input.c.i
+.PHONY : src/input.c.i
+
+src/input.s: src/input.c.s
+.PHONY : src/input.s
+
+# target to generate assembly for a file
+src/input.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/input.c.s
+.PHONY : src/input.c.s
+
 src/isr.o: src/isr.asm.o
 .PHONY : src/isr.o
 
@@ -315,6 +339,30 @@ src/memory.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/memory.c.s
 .PHONY : src/memory.c.s
 
+src/menu.o: src/menu.c.o
+.PHONY : src/menu.o
+
+# target to build an object file
+src/menu.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/menu.c.o
+.PHONY : src/menu.c.o
+
+src/menu.i: src/menu.c.i
+.PHONY : src/menu.i
+
+# target to preprocess a source file
+src/menu.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/menu.c.i
+.PHONY : src/menu.c.i
+
+src/menu.s: src/menu.c.s
+.PHONY : src/menu.s
+
+# target to generate assembly for a file
+src/menu.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/menu.c.s
+.PHONY : src/menu.c.s
+
 src/multiboot2.o: src/multiboot2.asm.o
 .PHONY : src/multiboot2.o
 
@@ -395,6 +443,30 @@ src/printf.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/printf.c.s
 .PHONY : src/printf.c.s
 
+src/shell.o: src/shell.c.o
+.PHONY : src/shell.o
+
+# target to build an object file
+src/shell.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/shell.c.o
+.PHONY : src/shell.c.o
+
+src/shell.i: src/shell.c.i
+.PHONY : src/shell.i
+
+# target to preprocess a source file
+src/shell.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/shell.c.i
+.PHONY : src/shell.c.i
+
+src/shell.s: src/shell.c.s
+.PHONY : src/shell.s
+
+# target to generate assembly for a file
+src/shell.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/shell.c.s
+.PHONY : src/shell.c.s
+
 src/song.o: src/song.c.o
 .PHONY : src/song.o
 
@@ -419,6 +491,54 @@ src/song.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/song.c.s
 .PHONY : src/song.c.s
 
+src/starfield.o: src/starfield.c.o
+.PHONY : src/starfield.o
+
+# target to build an object file
+src/starfield.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/starfield.c.o
+.PHONY : src/starfield.c.o
+
+src/starfield.i: src/starfield.c.i
+.PHONY : src/starfield.i
+
+# target to preprocess a source file
+src/starfield.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/starfield.c.i
+.PHONY : src/starfield.c.i
+
+src/starfield.s: src/starfield.c.s
+.PHONY : src/starfield.s
+
+# target to generate assembly for a file
+src/starfield.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/starfield.c.s
+.PHONY : src/starfield.c.s
+
+src/typingtest.o: src/typingtest.c.o
+.PHONY : src/typingtest.o
+
+# target to build an object file
+src/typingtest.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/typingtest.c.o
+.PHONY : src/typingtest.c.o
+
+src/typingtest.i: src/typingtest.c.i
+.PHONY : src/typingtest.i
+
+# target to preprocess a source file
+src/typingtest.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/typingtest.c.i
+.PHONY : src/typingtest.c.i
+
+src/typingtest.s: src/typingtest.c.s
+.PHONY : src/typingtest.s
+
+# target to generate assembly for a file
+src/typingtest.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uiaos-kernel.dir/build.make CMakeFiles/uiaos-kernel.dir/src/typingtest.c.s
+.PHONY : src/typingtest.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -437,6 +557,9 @@ help:
 	@echo "... src/idt.o"
 	@echo "... src/idt.i"
 	@echo "... src/idt.s"
+	@echo "... src/input.o"
+	@echo "... src/input.i"
+	@echo "... src/input.s"
 	@echo "... src/isr.o"
 	@echo "... src/isr.o"
 	@echo "... src/isr.i"
@@ -450,6 +573,9 @@ help:
 	@echo "... src/memory.o"
 	@echo "... src/memory.i"
 	@echo "... src/memory.s"
+	@echo "... src/menu.o"
+	@echo "... src/menu.i"
+	@echo "... src/menu.s"
 	@echo "... src/multiboot2.o"
 	@echo "... src/pic.o"
 	@echo "... src/pic.i"
@@ -460,9 +586,18 @@ help:
 	@echo "... src/printf.o"
 	@echo "... src/printf.i"
 	@echo "... src/printf.s"
+	@echo "... src/shell.o"
+	@echo "... src/shell.i"
+	@echo "... src/shell.s"
 	@echo "... src/song.o"
 	@echo "... src/song.i"
 	@echo "... src/song.s"
+	@echo "... src/starfield.o"
+	@echo "... src/starfield.i"
+	@echo "... src/starfield.s"
+	@echo "... src/typingtest.o"
+	@echo "... src/typingtest.i"
+	@echo "... src/typingtest.s"
 .PHONY : help
 
 

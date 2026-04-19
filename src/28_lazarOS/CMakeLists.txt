@@ -89,6 +89,11 @@ add_executable(uiaos-kernel
 	src/printf.c
 	src/pit.c
 	src/song.c
+	src/input.c
+	src/shell.c
+	src/typingtest.c
+	src/starfield.c
+	src/menu.c
 )
 
 # Include directories for the kernel target

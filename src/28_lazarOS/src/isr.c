@@ -2,37 +2,11 @@
 #include <keyboard.h>
 #include <pic.h>
 #include <pit.h>
+#include <input.h>
 
 extern void terminal_write(const char *str);
 
-#define KEYBOARD_BUFFER_SIZE 256
-
-static uint8_t keyboard_scancode_buffer[KEYBOARD_BUFFER_SIZE];
-static char keyboard_ascii_buffer[KEYBOARD_BUFFER_SIZE];
-static uint16_t keyboard_buffer_write_index = 0;
-
-static void append_uint(char *buf, uint32_t value)
-{
-    char tmp[11];
-    int i = 0;
-    int j;
-
-    if (value == 0) {
-        buf[0] = '0';
-        buf[1] = '\0';
-        return;
-    }
-
-    while (value > 0) {
-        tmp[i++] = (char)('0' + (value % 10));
-        value /= 10;
-    }
-
-    for (j = 0; j < i; j++)
-        buf[j] = tmp[i - 1 - j];
-
-    buf[i] = '\0';
-}
+static int shift_held = 0;
 
 void irq_handler(uint32_t vector)
 {
@@ -43,20 +17,28 @@ void irq_handler(uint32_t vector)
     } else if (irq_number == 1) {
         unsigned char scancode = inb(0x60);
 
-        if ((scancode & 0x80) == 0) {
-            uint16_t idx = keyboard_buffer_write_index;
-            uint8_t ascii = scancode2ascii[scancode];
+        /* Track shift key state */
+        if (scancode == 0x2A || scancode == 0x36) {      /* shift pressed  */
+            shift_held = 1;
+        } else if (scancode == 0xAA || scancode == 0xB6) { /* shift released */
+            shift_held = 0;
+        } else if ((scancode & 0x80) == 0) {             /* key press */
+            uint8_t ascii;
 
-            keyboard_scancode_buffer[idx] = scancode;
-            keyboard_ascii_buffer[idx] = (char)ascii;
-            keyboard_buffer_write_index = (uint16_t)((idx + 1) % KEYBOARD_BUFFER_SIZE);
+            if (shift_held)
+                ascii = scancode2ascii_shift[scancode];
+            else
+                ascii = scancode2ascii[scancode];
 
-            if (ascii != 0) {
-                char ch[2];
-                ch[0] = (char)ascii;
-                ch[1] = '\0';
-                terminal_write(ch);
-            }
+            /* Map Enter scancode (0x1C) to newline */
+            if (scancode == 0x1C) ascii = '\n';
+            /* Map Backspace scancode (0x0E) */
+            if (scancode == 0x0E) ascii = '\b';
+            /* Map Escape scancode (0x01) */
+            if (scancode == 0x01) ascii = 0x1B;
+
+            if (ascii != 0)
+                input_put_char((char)ascii);
         }
     }
 

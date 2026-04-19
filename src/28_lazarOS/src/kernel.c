@@ -7,6 +7,8 @@
 #include <keyboard.h>
 #include <pit.h>
 #include <song.h>
+#include <input.h>
+#include <menu.h>
 
 
 /* ───────────────────────────────────────────────────────────────
@@ -66,7 +68,7 @@ static int terminal_col = 0;
 static int terminal_row = 0;
 
 /* terminal_clear – fill every cell with a blank space */
-static void terminal_clear(void)
+void terminal_clear(void)
 {
     int row;
     int col;
@@ -80,7 +82,7 @@ static void terminal_clear(void)
 }
 
 /* terminal_scroll – shift every row up by one, blank the last row */
-static void terminal_scroll(void)
+void terminal_scroll(void)
 {
     int row;
     int col;
@@ -105,6 +107,14 @@ void terminal_putchar(char c)
         terminal_row++;
     } else if (c == '\r') {
         terminal_col = 0;
+    } else if (c == '\b') {
+        /* Backspace: move cursor back one position */
+        if (terminal_col > 0) {
+            terminal_col--;
+        } else if (terminal_row > 0) {
+            terminal_row--;
+            terminal_col = VGA_COLS - 1;
+        }
     } else {
         vga[terminal_row * VGA_COLS + terminal_col] =
             (unsigned short)((unsigned char)c | (VGA_COLOR << 8));
@@ -143,42 +153,41 @@ void main(void)
     gdt_init();
     serial_write("kernel: gdt loaded\n");
 
-
     pic_remap();
-    //pic_mask_all();
 
     outb(0x21, 0xFC); // Enable IRQ0 (timer) and IRQ1 (keyboard)
     outb(0xA1, 0xFF); // Mask everything else
 
-    //setup IDT
+    /* 2. Set up the Interrupt Descriptor Table */
     idt_init();
     serial_write("kernel: idt loaded\n");
 
+    /* 3. Initialise memory management and paging */
     init_kernel_memory(&end);
     init_paging();
-    print_memory_layout();
 
-    //Initialize the Programmable Interval Timer
+    /* 4. Initialise the Programmable Interval Timer */
     init_pit();
 
-    // 2. Initialise the text-mode terminal 
+    /* 5. Initialise keyboard input buffer */
+    input_init();
+
+    /* 5. Initialise the text-mode terminal */
     terminal_clear();
 
-    // 3. Print the required greeting 
-    printf("Hello World!\n");
+    /* 6. Enable interrupts */
+    __asm__ volatile("sti");
 
-    // Test memory allocation 
-    void* some_memory = malloc(12345);
-    void* memory2 = malloc(54321);
-    void* memory3 = malloc(13331);
+    /* 7. Boot message */
+    printf("lazarOS booting...\n");
+    printf("GDT loaded, IDT loaded, PIT running at %d Hz\n", TARGET_FREQUENCY);
+    printf("Memory and paging initialised.\n\n");
+    sleep_interrupt(1500);
 
-    printf("some_memory: 0x%x\n", (uint32_t)some_memory);
-    printf("memory2:     0x%x\n", (uint32_t)memory2);
-    printf("memory3:     0x%x\n", (uint32_t)memory3);
+    /* 8. Launch the main menu */
+    menu_run();
 
-    printf("Starting music player...\n");
-    play_music();
-
+    /* Should never reach here */
     while (1)
         __asm__ volatile("hlt");
 }
