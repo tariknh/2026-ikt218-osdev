@@ -73,8 +73,8 @@ add_executable(uiaos-kernel
 	../isr/isr.asm
 	../irq/irq.c
 	../irq/irq.asm
-	../quicmusic/SongPlayer.c
-	../quicmusic/SongPlayer.h
+	../quicmusic/SoundPlayer.c
+	../quicmusic/SoundPlayer.h
 	../quicmusic/frequencies.h
 	../quicmusic/song.c
 	../quicmusic/song.h
