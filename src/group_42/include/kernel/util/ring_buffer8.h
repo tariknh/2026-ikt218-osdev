@@ -1,9 +1,9 @@
 #pragma once
 #include <stdbool.h>
-#include <stdint.h>
+
+#include "stdint.h"
 
 
-// TODO: runtime defined size
 #define ring_buffer_SIZE 256
 
 /**

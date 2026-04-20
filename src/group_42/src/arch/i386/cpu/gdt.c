@@ -39,7 +39,7 @@ extern void gdt_reload_segments();
 static gdt_entry_t gdt[GDT_ENTRIES];
 static gdt_ptr_t gdt_ptr;
 
-bool init_gdt() {
+void init_gdt() {
   // set gdt limit
   log_info("Initialising GDT with %d entries...\n", GDT_ENTRIES);
   gdt_ptr.limit = sizeof(gdt_entry_t) * GDT_ENTRIES - 1;
@@ -60,26 +60,23 @@ bool init_gdt() {
   // load gdt
   gdt_set_gdt(&gdt_ptr);
   gdt_reload_segments();
-
-
-  return true; // TODO: how do we check this..
 }
 
 
 void gdt_set_entry(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags) {
-    gdt[num].base_low = base & 0xFFFF;
-    gdt[num].base_middle = base >> 16 & 0xFF;
-    gdt[num].base_high = base >> 24 & 0xFF;
+  gdt[num].base_low = base & 0xFFFF;
+  gdt[num].base_middle = base >> 16 & 0xFF;
+  gdt[num].base_high = base >> 24 & 0xFF;
 
-    gdt[num].limit_low = limit & 0xFFFF;
+  gdt[num].limit_low = limit & 0xFFFF;
 
-    // Flags (granularity byte) = (Limit High 4 bits) | (Flags High 4 bits)
-    gdt[num].granularity = limit >> 16 & 0x0F;
-    gdt[num].granularity |= flags & 0xF0;
+  // Flags (granularity byte) = (Limit High 4 bits) | (Flags High 4 bits)
+  gdt[num].granularity = limit >> 16 & 0x0F;
+  gdt[num].granularity |= flags & 0xF0;
 
-    gdt[num].access = access;
+  gdt[num].access = access;
 }
 
 void gdt_reload(void) {
-    gdt_set_gdt(&gdt_ptr);
+  gdt_set_gdt(&gdt_ptr);
 }
