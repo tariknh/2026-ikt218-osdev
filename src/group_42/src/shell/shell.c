@@ -3,8 +3,10 @@
 #include <kernel/input.h>
 #include <stdio.h>
 
+#include "string.h"
 #include "drivers/input/keyboard.h"
 #include "drivers/video/vga_text.h"
+#include "kernel/filesystem/vfs.h"
 #include "shell/shell_command.h"
 
 
@@ -19,6 +21,14 @@ extern int cmd_timer_test(int argc, char** argv);
 extern int cmd_music_player(int argc, char** argv);
 extern int cmd_test_syscalls(int argc, char** argv);
 extern int cmd_loadkeys(int argc, char** argv);
+
+extern int cmd_pwd(int argc, char** argv);
+extern int cmd_cd(int argc, char** argv);
+extern int cmd_ls(int argc, char** argv);
+extern int cmd_touch(int argc, char** argv);
+extern int cmd_mkdir(int argc, char** argv);
+extern int cmd_cat(int argc, char** argv);
+extern int cmd_write(int argc, char** argv);
 
 
 #define SHELL_BUFFER_SIZE 256
@@ -49,7 +59,15 @@ const shell_command_t command_table[] = {
     {     "timer_test",               "Run timer test IRQ0",      cmd_timer_test},
     {   "music_player", "Play a song (music_player <song>)",    cmd_music_player},
     {  "test_syscalls",    "Test syscall handlers directly",   cmd_test_syscalls},
-    {       "loadkeys",         "Load keys locale [no, us]",        cmd_loadkeys}
+    {       "loadkeys",         "Load keys locale [no, us]",        cmd_loadkeys},
+
+    {"pwd", "print working directory", cmd_pwd},
+    {"cd", "change directory", cmd_cd},
+    {"ls", "list files", cmd_ls},
+    {"touch", "create file", cmd_touch},
+    {"mkdir", "create directory", cmd_mkdir},
+    {"cat", "concatenate / read files", cmd_cat},
+    {"write", "write to file", cmd_write},
 };
 const size_t NUM_COMMANDS = sizeof(command_table) / sizeof(command_table[0]);
 
@@ -210,6 +228,34 @@ static void clear_cursor(void) {
   uint16_t entry = vga_text_get_entry_at(cursor_x, cursor_y);
 
   vga_text_putentryat((char)(entry & 0xFF), cursor_saved_color, cursor_x, cursor_y);
+}
+
+static char cwd[MAX_PATH_LEN] = "/";
+
+const char* shell_get_cwd(void) {
+  return cwd;
+}
+
+void shell_set_cwd(const char* new_path) {
+  if (!new_path) return;
+  strncpy(cwd, new_path, MAX_PATH_LEN);
+}
+
+void shell_build_absolute_path(char* out, const char* input) {
+  if (input[0] == '/') {
+    // Already absolute
+    strncpy(out, input, MAX_PATH_LEN);
+  } else {
+    const char* current_cwd = shell_get_cwd();
+    strncpy(out, current_cwd, MAX_PATH_LEN);
+
+    // Add a separator if not at root
+    if (strcmp(current_cwd, "/") != 0) {
+      strncat(out, "/", MAX_PATH_LEN);
+    }
+
+    strncat(out, input, MAX_PATH_LEN);
+  }
 }
 
 void shell_init(void) {

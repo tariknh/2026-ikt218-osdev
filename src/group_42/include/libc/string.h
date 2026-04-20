@@ -67,3 +67,12 @@ char* strncpy(char* dest, const char* src, size_t count);
  * @return pointer to last character in string or NULL
  */
 char* strrchr (const char* s, int c);
+
+/**
+ * Appends the first num characters of source to destination, plus a terminating null-character.
+ * @param dest
+ * @param src C string to be appended.
+ * @param n Maximum number of characters to be appended.
+ * @return destination is returned.
+ */
+char* strncat (char* dest, const char* src, size_t n);

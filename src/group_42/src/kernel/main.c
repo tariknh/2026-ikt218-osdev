@@ -113,7 +113,7 @@ void run_vfs_test_suite() {
     log_info("[PASS] open O_CREAT in subdirectory (FD: %d)\n", fd);
 
     // 3. Test write & fstat
-    vfs_write(fd, "VFS_TEST", 8);
+    vfs_write(fd, "VFS_TEST this is a very long file just for testing ykyk", 50);
     if (vfs_fstat(fd, &st) == 0 && st.size == 8) {
       log_info("[PASS] write and fstat (size: %d)\n", st.size);
     }

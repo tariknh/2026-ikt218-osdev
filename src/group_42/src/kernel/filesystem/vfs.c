@@ -3,7 +3,6 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "kernel/log.h"
 
 vfs_fd_t fd_table[MAX_OPEN_FILES];
 static vfs_mount_t mount_table[8]; // example limit
@@ -13,6 +12,11 @@ void vfs_init() {
     for(int i = 0; i < MAX_OPEN_FILES; i++) {
         fd_table[i].used = 0;
     }
+
+    // Reserve fd 0-2 for stdio
+    fd_table[0].used = 1;
+    fd_table[1].used = 1;
+    fd_table[2].used = 1;
 }
 
 /* --- common stub for resolving paths to driver and getting relative fs path --- */
@@ -142,8 +146,14 @@ int vfs_write(const int fd, const void* buf, const size_t n) {
     if (fd < 0 || fd >= MAX_OPEN_FILES || !fd_table[fd].used) return -1;
 
     vfs_fd_t* file = &fd_table[fd];
+    
+    int bytes_written = file->driver->write(file, buf, n);
 
-    return file->driver->write(file, buf, n);
+    if (bytes_written == -1) return -1;
+
+    file->offset += bytes_written;
+
+    return bytes_written;
 }
 
 int vfs_lseek(int fd, int offset, int whence) {
