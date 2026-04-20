@@ -16,3 +16,6 @@ build.ninja
 00_per_arne
 src/group_name/src/kernel.c
 .gitignore
+assignment6_report.md
+expanded_sections.tex
+build/pcspk.wav
