@@ -14,7 +14,7 @@ uint8_t inb(uint16_t port) {
 
 
 //Play sound using built-in speaker
-void play_sound(uint32_t nFrequence) {
+void piano_play_sound(uint32_t nFrequence) {
  	uint32_t Div;
  	uint8_t tmp;
  
@@ -40,21 +40,21 @@ void nosound(void) {
 
 
  // Enkel piano-funksjon: trykk 1-8 for å spille toner
-void piano_play(void) {
+void piano_play_sound_keys(void) {
     while (1) {
         if (inb(0x64) & 0x01) { // Data klar fra tastatur
             uint8_t scancode = inb(0x60);
-            switch (scancode) {
-                case 0x02: play_sound(NOTE_C4); break; // 1
-                case 0x03: play_sound(NOTE_D4); break; // 2
-                case 0x04: play_sound(NOTE_E4); break; // 3
-                case 0x05: play_sound(NOTE_F4); break; // 4
-                case 0x06: play_sound(NOTE_G4); break; // 5
-                case 0x07: play_sound(NOTE_A4); break; // 6
-                case 0x08: play_sound(NOTE_B4); break; // 7
-                case 0x09: play_sound(NOTE_C5); break; // 8
-                default: nosound(); break;
-            }
+                switch (scancode) {
+                    case 0x02: piano_play_sound(NOTE_C4); break; // 1
+                    case 0x03: piano_play_sound(NOTE_D4); break; // 2
+                    case 0x04: piano_play_sound(NOTE_E4); break; // 3
+                    case 0x05: piano_play_sound(NOTE_F4); break; // 4
+                    case 0x06: piano_play_sound(NOTE_G4); break; // 5
+                    case 0x07: piano_play_sound(NOTE_A4); break; // 6
+                    case 0x08: piano_play_sound(NOTE_B4); break; // 7
+                    case 0x09: piano_play_sound(NOTE_C5); break; // 8
+                    default: nosound(); break;
+                }
         }
     }
 }

@@ -74,6 +74,11 @@ add_executable(uiaos-kernel
 	../isr/isr.asm
 	../irq/irq.c
 	../irq/irq.asm
+	../quicmusic/SoundPlayer.c
+	../quicmusic/SoundPlayer.h
+	../quicmusic/frequencies.h
+	../quicmusic/song.c
+	../quicmusic/song.h
 )
 
 # Include directories for the kernel target
