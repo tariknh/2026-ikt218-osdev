@@ -60,7 +60,7 @@ static void display_command_info(const char name[], const char options[], const 
 static void display_song_help() {
     const CommandColors colors = get_command_colors();
 
-    print(" Enter the corresponding value in options field to select which song:\n");
+    print_color(" Enter the corresponding value in options field to select song\n", colors.name);
     print_color(" <song number>", colors.name);
     print_color(" -> ", colors.options);
     print_color("<song name>\n", colors.name);
@@ -363,21 +363,24 @@ int8_t command_playsong(int argument_count, char* arguments[]) {
         return COMMAND_SUCCESS;
     }
 
-    uint8_t ok;
-    const uint8_t selected_song_number = str_to_int_checked(arguments[1], ok);
+    int ok = -1;
+    const uint8_t selected_song_number = str_to_int_checked(arguments[1], &ok);
 
     if (!ok) {
         return COMMAND_ARGUMENT_INVALID_SONG_NUMBER;
     }
 
-
-    const uint8_t selected_song_index = selected_song_number - 1;
-
-    if (selected_song_index < 0 || selected_song_index > song_count - 1) {
+    if (selected_song_number < 1 || selected_song_number > song_count) {
         return COMMAND_ARGUMENT_INVALID_SONG_NUMBER;
     }
 
-    play_song_by_index(selected_song_index);
+    char* formatted_index = format_string(" Playing song %d: ", selected_song_number);
+    print(formatted_index);
+    free(formatted_index);
+    print(song_names[selected_song_number - 1]);
+    print("\n");
+
+    play_song_by_index(selected_song_number - 1);
 
     return COMMAND_SUCCESS;
 }
