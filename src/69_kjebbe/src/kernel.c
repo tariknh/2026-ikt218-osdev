@@ -41,6 +41,9 @@ int main(uint32_t magic, struct multiboot_info *mb_info_addr) {
   int counter = reload;
 
   printf("Hello World!\n");
+  asm volatile("int $0x00");
+  asm volatile("int $0x01");
+  asm volatile("int $0x02");
   printf("Memory information printed above. To display the menu press: %d \n",
          PROGRAM_MENU);
   // Main kernel loop
