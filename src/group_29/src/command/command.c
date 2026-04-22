@@ -31,7 +31,7 @@ static void display_help_header() {
 
     // print_color(" <command> [options]: <description>");
 
-    print_color(" <command> ", colors.name);
+    print_color(" <command>", colors.name);
     print_color(" [options]", colors.options);
     print_color(" <description>\n", colors.description);
     print_color(" ----------------------------------------\n", colors.options);
@@ -207,7 +207,7 @@ int8_t command_heapinfo(int argument_count, char *arguments[]) {
     uint8_t good_color  = VgaColor(vga_black, vga_green);
     uint8_t warn_color  = VgaColor(vga_black, vga_yellow);
     uint8_t bad_color   = VgaColor(vga_black, vga_light_red);
-    uint8_t title_color = VgaColor(vga_black, vga_light_red);
+    uint8_t title_color = VgaColor(vga_black, vga_light_gray);
 
     // fragmentation color logic
     uint8_t frag_color = value_color;
