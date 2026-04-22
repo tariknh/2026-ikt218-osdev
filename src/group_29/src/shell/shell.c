@@ -164,7 +164,7 @@ static void shell_submit_current_line(void) {
         }
 
         if (result == TINYFS_STATUS_DISKTEST_INVALID_USAGE) {
-            shell_print_failure_message(" Usage: disktest [read|write]", shell_state.submitted_line);
+            shell_print_failure_message(" Usage: disktest [read|write]: ", shell_state.submitted_line);
         }
 
         if (result == TINYFS_STATUS_FAILED_TO_READ_SECTOR_10) {
@@ -173,6 +173,10 @@ static void shell_submit_current_line(void) {
 
         if (result == TINYFS_STATUS_NOT_ENOUGH_MEMORY_TO_BUILD_FILE_CONTENT) {
             shell_print_failure_message(" Not enough memory to build file content.", shell_state.submitted_line);
+        }
+
+        if (result == COMMAND_ARGUMENT_INVALID_SONG_NUMBER) {
+            shell_print_failure_message(" Invalid song number in: ", shell_state.submitted_line);
         }
 
     }

@@ -6,6 +6,7 @@
 #include "../user/user.h"
 #include "../disk/ata.h"
 #include "../fs/tinyfs.h"
+#include "../sound/song_player.h"
 
 #define MAX_ARGS 10
 
@@ -21,7 +22,8 @@ enum {
     COMMAND_TOO_FEW_ARGUMENTS = -4,
     COMMAND_TOO_MANY_ARGUMENTS = -5,
     COMMAND_ARGUMENT_INVALID = -6,
-    COMMAND_ARGUMENT_USERNAME_TOO_LONG = -7
+    COMMAND_ARGUMENT_USERNAME_TOO_LONG = -7,
+    COMMAND_ARGUMENT_INVALID_SONG_NUMBER = -8
 };
 
 /// @brief Function pointer type for commands
@@ -42,10 +44,14 @@ typedef struct {
     uint8_t description;
 } CommandColors;
 
+typedef struct {
+    char* song_name;
+} SongMapEntry;
+
 // Commands
 
 /// @brief Displays all commands
-int8_t command_help(int argument_count, char* arguments[]);
+int8_t command_help(int argument_count, char *arguments[]);
 
 /// @brief Print user input to screen
 int8_t command_echo(int argument_count, char* arguments[]);
@@ -58,6 +64,9 @@ int8_t command_set_username(int argument_count, char* arguments[]);
 
 /// @brief Displays memory info
 int8_t command_heapinfo(int argument_count, char* arguments[]);
+
+/// @brief Plays a song
+int8_t command_playsong(int argument_count, char* arguments[]);
 
 int8_t command_disktest(int argument_count, char* arguments[]);
 int8_t command_format(int argument_count, char* arguments[]);

@@ -6,12 +6,20 @@ static CommandEntry commands[] = {
     { "clear", "[none]", "Clears the shell content", command_clear },
     { "setusername", "<new-username>", "Changes the shell user display name", command_set_username },
     { "heapinfo", "[none]", "Displays information about the heap of memory", command_heapinfo },
+    { "playsong", "<1-8 | help>", "Plays a song as defined in 'playsong help'", command_playsong },
     { "disktest", "[read|write]", "Reads or writes one raw disk sector", command_disktest },
     { "format", "[none]", "Formats the tiny persistent filesystem", command_format },
     { "ls", "[none]", "Lists files in the tiny filesystem", command_ls },
     { "write", "<file> <text>", "Creates or overwrites a file", command_write_file },
     { "cat", "<file>", "Prints a file from the tiny filesystem", command_cat }
 };
+
+// static SongMapEntry song_data[] = {
+    
+// };
+
+static const char* song_names[] = {"song 1", "starwars theme", "battlefield 1942", "song 2", "song 3", "song 4", "song 5", "song 6"};
+static const uint8_t song_count = 8;
 
 static const int command_count = sizeof(commands) / sizeof(commands[0]);
 
@@ -47,6 +55,26 @@ static void display_command_info(const char name[], const char options[], const 
     print_color(": ", VgaColor(vga_black, vga_white));
     print_color(description, colors.description);
     print("\n");
+}
+
+static void display_song_help() {
+    const CommandColors colors = get_command_colors();
+
+    print("Enter the corresponding value to select which song:\n");
+    print_color(" <song number>", colors.name);
+    print_color(" -> ", colors.options);
+    print_color("<song name>\n", colors.name);
+    print_color(" ----------------------------------------\n", colors.options);
+
+    for (uint8_t i = 0; i < song_count; i++) {
+        char* formatted_index = format_string(" %d", i + 1);
+        print_color(formatted_index, colors.name);
+        free(formatted_index);
+
+        print_color(" -> ", colors.options);
+        print_color(song_names[i], colors.name);
+        print("\n");
+    }
 }
 
 static int8_t check_argument_count(uint8_t actual_count, uint8_t required_count) {
@@ -322,6 +350,34 @@ int8_t command_heapinfo(int argument_count, char *arguments[]) {
     print_color("Free:", dim_color);
     s = format_string("%d\n", (int32_t)h.free_bytes_with_meta);
     print_color(s, good_color); free(s);
+
+    return COMMAND_SUCCESS;
+}
+
+int8_t command_playsong(int argument_count, char* arguments[]) {
+    int8_t argument_result = check_argument_count(argument_count, 2);
+    if (argument_result != COMMAND_VALID_ARGUMENTS) return argument_result;
+
+    if (strcmp(arguments[1], "help") == 0) {
+        display_song_help();
+        return COMMAND_SUCCESS;
+    }
+
+    uint8_t ok;
+    const uint8_t selected_song_number = str_to_int_checked(arguments[1], ok);
+
+    if (!ok) {
+        return COMMAND_ARGUMENT_INVALID_SONG_NUMBER;
+    }
+
+
+    const uint8_t selected_song_index = selected_song_number - 1;
+
+    if (selected_song_index < 0 || selected_song_index > song_count - 1) {
+        return COMMAND_ARGUMENT_INVALID_SONG_NUMBER;
+    }
+
+    play_song_by_index(selected_song_index);
 
     return COMMAND_SUCCESS;
 }
