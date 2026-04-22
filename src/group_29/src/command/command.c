@@ -67,7 +67,7 @@ static void display_song_help() {
     print_color(" ----------------------------------------\n", colors.options);
 
     for (uint8_t i = 0; i < song_count; i++) {
-        char* formatted_index = format_string(" %d ", i);
+        char* formatted_index = format_string(" %d", i + 1);
         print_color(formatted_index, colors.name);
         free(formatted_index);
 
