@@ -12,6 +12,7 @@
 
 // This symbol is exported by arch/i386/linker.ld
 extern uint32_t end;
+volatile int quit = 0;
 
 /*------------------ GDT ------------------*/
 
@@ -236,8 +237,9 @@ void play_music() {
 
     SongPlayer* player = create_song_player();
 
-    while(1) {
+    while(!quit) {
         for(uint32_t i = 0; i < n_songs; i++) {
+            if (quit) break;
             printf("Playing Song...\n");
             player->play_song(&songs[i]);
             printf("Finished playing the song.\n");
@@ -248,20 +250,32 @@ void play_music() {
 
 /*------- MENU -------*/
 void show_menu(void) {
-    terminal_writestring(""); 
+    terminal_writestring("\n"); 
     terminal_writestring("  +===============================+\n");
     terminal_writestring("  |      UiAOS Main Menu          |\n");
     terminal_writestring("  +===============================+  What do you \n");
     terminal_writestring("  | 1. Play Music                 |  want to do? \n");
-    terminal_writestring("  | 2. Piano Keyboard             |      ___\n");
-    terminal_writestring("  | 3. System Info                |    (o v o)\n");
+    terminal_writestring("  |                               |      ___\n");
+    terminal_writestring("  |                               |    (o v o)\n");
     terminal_writestring("  | 4. Memory Viewer              |      /|\\\n");
     terminal_writestring("  +===============================+      / \\\n");
     terminal_writestring("\n  Press a key to select...\n");
 }
 
+/*--------- interrupt test --------*/
+void interrupt_test(counter){
+    while (!quit) {
+                printf("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", counter);
+                sleep_busy(1000);
+                if (quit) break;
+                printf("[%d]: Slept using busy-waiting.\n", counter++);
 
-
+                printf("[%d]: Sleeping with interrupts (LOW CPU).\n", counter);
+                sleep_interrupt(1000);
+                if (quit) break;
+                printf("[%d]: Slept using interrupts.\n", counter++);
+            }
+}
 
 void main(){
     // Initialize the monitor (screen output)
@@ -325,16 +339,6 @@ void main(){
 
     // Evaluation loop — demonstrates both sleep modes
     int counter = 0;
-    /*while (true) {
-        printf("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", counter);
-        sleep_busy(1000);
-        printf("[%d]: Slept using busy-waiting.\n", counter++);
-
-        printf("[%d]: Sleeping with interrupts (LOW CPU).\n", counter);
-        sleep_interrupt(1000);
-        printf("[%d]: Slept using interrupts.\n", counter++);
-    }*/
-
 
 
     printf("\n Do you want to see the menu? \n (reach it whenever you want by writing menue/Menu in terminal)): ");
@@ -347,19 +351,24 @@ void main(){
                 char answer = keyboard_getchar();
                 if(answer == 'n' || answer == 'N'){
                     char answer = keyboard_getchar();
+                    printf("\n\n");
                     if(answer == 'u' || answer == 'U'){
                         char answer = keyboard_getchar();
-                        printf("\n\n");
-                        if (answer == 'e' || answer == 'E'){
-                            show_menu();
-                        } 
+                        show_menu();
                     } 
                 } 
             } 
         }
-        if (answer == '1'){
+        else if (answer == '1'){
+            quit = 0;
             //PLAY MUSIC
             play_music();
+            printf("\n");
+        } 
+        else if (answer == '2'){
+            quit = 0;
+            interrupt_test(counter);
+            printf("\n");
         }
     }
     

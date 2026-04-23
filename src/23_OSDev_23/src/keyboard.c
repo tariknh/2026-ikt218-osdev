@@ -8,6 +8,8 @@ char last_key = 0;
 /* Let's forward declare the put char function we have in kernel.c */
 extern void terminal_putchar(char c);
 
+extern volatile int quit;
+
 unsigned char kbdus[128] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
@@ -68,6 +70,10 @@ void keyboard_handler(registers_t *r)
         char c = kbdus[scancode];
         last_key = c; 
         terminal_putchar(c);
+
+        if(c == 'q'){
+          quit = 1;
+        }
     }
 }
 
