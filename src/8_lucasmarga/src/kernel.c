@@ -6,6 +6,8 @@
 #include "memory.h"
 #include "pit.h"
 #include "song.h"
+#include "keyboard.h"
+#include "feature_menu.h"
 
 extern uint32_t end;
 
@@ -71,6 +73,8 @@ void kmain(uint32_t magic, void* mb_info_addr) {
     }
     */
 
+  /*  MUSIC-PLAYER FEATURE (ASSIGNMENT 5)
+
     Song songs[] = {
     {music_1, sizeof(music_1) / sizeof(Note)}
 };
@@ -82,6 +86,20 @@ while (1) {
     player->play_song(&songs[0]);
     terminal_print_string("Finished song :(\n");
     sleep_interrupt(1000);
+}
+*/
+
+terminal_print_string("\n\nSystem initialization complete.\n");
+terminal_print_string("Press any key to open the feature menu...");
+
+keyboard_clear_buffer();
+keyboard_wait_key();
+
+terminal_initialize();
+feature_menu_run();
+
+while (1) {
+    __asm__ __volatile__("hlt");
 }
 
 }
