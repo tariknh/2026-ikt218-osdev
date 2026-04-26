@@ -9,21 +9,13 @@ header_start:
     dd header_end - header_start 	                                ; Header length
     dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header_start)) ; Checksum
 
-;align 8
-;framebuffer_tag_start:
-;    dw 5                                              ; type
-;    dw 1                                              ; flags
-;    dd framebuffer_tag_end - framebuffer_tag_start    ; size
-;    dd 800                                            ; width
-;    dd 600                                            ; height
-;    dd 32                                             ; depth
-;framebuffer_tag_end:
+
 
 align 8
     ; Required end tag:
     dw 0	; type
     dw 0	; flags
-    dw 8	; size
+    dd 8	; size (uint32_t, must be dd not dw)
 header_end:
 
 section .text
@@ -38,6 +30,11 @@ _start:
 	push eax
 
     call main ; Jump main function
+
+.hang:
+    cli
+    hlt
+    jmp .hang  ; If an NMI wakes the CPU, go back to sleep
 
 section .bss
 stack_bottom:

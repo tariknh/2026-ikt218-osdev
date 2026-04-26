@@ -57,10 +57,25 @@ set(CMAKE_ASM_NASM_COMPILE_OBJECT
 set(OS_KERNEL_LINKER "${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${OS_ARCH_TARGET}/linker.ld")
 
 # Add executable target for the kernel
-add_executable(uiaos-kernel 
-	src/multiboot2.asm # TODO: Add multiboot2 support
-    src/kernel.c
-	src/kernel.cpp
+add_executable(uiaos-kernel
+	src/multiboot2.asm        # Multiboot2 header and entry point
+	src/gdt.asm               # GDT flush / segment-register reload
+	src/idt.asm               # IDT flush + ISR/IRQ stubs (all 32+16 vectors)
+    src/kernel.c              # C entry point (calls kernel_main)
+	src/kernel.cpp            # C++ kernel main
+	src/gdt.c                 # Global Descriptor Table setup
+	src/idt.c                 # Interrupt Descriptor Table setup + PIC remapping
+	src/isr.c                 # ISR/IRQ C handlers + keyboard logger
+	src/terminal.c            # VGA text-mode terminal
+	src/printf.c              # printf / putchar / print
+	src/memory/memory.c       # Paging setup
+	src/memory/malloc.c       # Heap allocator (malloc / free)
+	src/memory/memutils.c     # memcpy / memset / memset16
+	src/pit.c                 # Programmable Interval Timer driver
+	src/song/music.c
+	src/song/SongPlayer.cpp
+	src/sysmon/sysmon.cpp     # System monitor dashboard
+	src/menu/menu.cpp         # Interactive demo menu
 )
 
 # Include directories for the kernel target
