@@ -28,6 +28,12 @@ void terminal_initialize(void) {
 
 // Write one letter to the current screen position
 void terminal_putchar(char c) {
+    if (c == '\n'){
+        terminal_column = 0;
+        terminal_row++;
+        return;
+    }
+
     size_t index = terminal_row * 80 + terminal_column;                 // Find current screen position
     terminal_buffer[index] = vga_entry(c, terminal_color);              // Write the character with current color
 

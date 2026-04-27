@@ -2,11 +2,14 @@
 #include "io.h"
 #include "pic.h"
 #include "keyboard.h"
+#include "pit.h"
 #include <libc/stdint.h>
 
 // Handle IRQ0
 void irq0_handler(void){
+    pit_tick();
     pic_send_eoi(0);
+
 }
 
 // Handle IRQ1
