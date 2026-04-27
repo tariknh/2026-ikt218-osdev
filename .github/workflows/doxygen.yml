@@ -2,7 +2,7 @@ name: Generate Documentation
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 permissions:
   contents: write # Required for actions-gh-pages to push to the repo
