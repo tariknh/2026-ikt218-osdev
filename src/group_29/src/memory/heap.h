@@ -10,7 +10,8 @@
 #include "memory_macros.h"
 
 
-/** \file
+/**
+ * \file
  * Fixed-size early kernel heap placed directly after the linker-provided end
  * symbol. The allocator uses a first-fit free list, splits large free blocks
  * during allocation, and merges adjacent free blocks during free.

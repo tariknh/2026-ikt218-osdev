@@ -6,6 +6,11 @@
 
 #define USER_MAX_USERNAME_LENGTH 24
 
+/**
+ * \file
+ * \todo Is this even used?
+ */
+
 typedef struct {
     char username[USER_MAX_USERNAME_LENGTH + 1];
 } UserData;

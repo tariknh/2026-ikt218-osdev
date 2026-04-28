@@ -4,12 +4,6 @@
 #include "../pit/pit.h"
 #include "../printing/printing.h"
 
-#define PIC1_COMMAND_PORT 0x20
-#define PIC1_DATA_PORT 0x21
-#define PIC2_COMMAND_PORT 0xA0
-#define PIC2_DATA_PORT 0xA1
-#define PIC_EOI_COMMAND 0x20
-
 static struct idt_gate idt[256];
 static struct idt_pointer idtp;
 
@@ -32,7 +26,6 @@ static void isr0_handler(struct interrupt_frame* frame);
 static void isr1_handler(struct interrupt_frame* frame);
 static void isr2_handler(struct interrupt_frame* frame);
 
-/** Loads the interrupt descriptor table */
 void load_idt(struct idt_pointer idt_pointer) {
     __asm__ __volatile__("lidt %0\r\n" : : "m"(idt_pointer));
 }
