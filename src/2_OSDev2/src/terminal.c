@@ -54,8 +54,14 @@ void terminal_init(void) {  // Initialize terminal state and clear the screen
     terminal_row = 0;
     terminal_column = 0;
     VGA_COLOR = 0x0F; // White on black
+    terminal_clear();
+}
 
-    for (size_t y = 0; y < VGA_HEIGHT; y++) {   // Clear the screen by filling it with spaces
+void terminal_clear(void) {
+    terminal_row = 0;
+    terminal_column = 0;
+
+    for (size_t y = 0; y < VGA_HEIGHT; y++) {
         for (size_t x = 0; x < VGA_WIDTH; x++) {
             VGA_BUFFER[y * VGA_WIDTH + x] = vga_entry(' ', VGA_COLOR);
         }

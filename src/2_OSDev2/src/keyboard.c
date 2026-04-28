@@ -1,10 +1,13 @@
 #include <libc/stdint.h>
 #include "keyboard.h"
 #include "io.h"
+#include "snake.h"
 #include "shell.h"
 
 #define KBD_DATA_PORT 0x60
 #define PIC1_DATA_PORT 0x21
+
+static uint8_t extended_scancode_pending = 0;
 
 void keyboard_init(void) {
     uint8_t mask = inb(PIC1_DATA_PORT);
@@ -13,6 +16,7 @@ void keyboard_init(void) {
 
 static char scancode_to_ascii(uint8_t sc) {
     switch (sc) {
+        case 0x01: return (char)SNAKE_INPUT_ESCAPE;
         case 0x02: return '1';
         case 0x03: return '2';
         case 0x04: return '3';
@@ -61,8 +65,33 @@ static char scancode_to_ascii(uint8_t sc) {
     }
 }
 
+static char extended_scancode_to_input(uint8_t sc) {
+    switch (sc) {
+        case 0x48: return (char)SNAKE_INPUT_UP;
+        case 0x50: return (char)SNAKE_INPUT_DOWN;
+        case 0x4B: return (char)SNAKE_INPUT_LEFT;
+        case 0x4D: return (char)SNAKE_INPUT_RIGHT;
+        default: return 0;
+    }
+}
+
 void keyboard_on_irq1(void) {
     uint8_t sc = inb(KBD_DATA_PORT);
+
+    if (sc == 0xE0) {
+        extended_scancode_pending = 1;
+        return;
+    }
+
+    if (extended_scancode_pending) {
+        extended_scancode_pending = 0;
+
+        char c = extended_scancode_to_input(sc);
+        if (c != 0) {
+            shell_handle_char(c);
+        }
+        return;
+    }
 
     // Ignore key release events
     if (sc & 0x80) {

@@ -101,6 +101,7 @@ void main(void) {
     terminal_write("Type on the keyboard to see output:\n");
 
     for (;;) {
+        shell_process_pending();
         // Halt the CPU to save power until the next interrupt
         __asm__ volatile ("hlt");
     }
