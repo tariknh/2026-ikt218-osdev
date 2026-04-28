@@ -9,6 +9,7 @@ static uint32_t* last_page = 0;
 void paging_map_virtual_to_phys(uint32_t virt, uint32_t phys) {
     uint16_t id = virt >> 22;
 
+    // Build one page table that maps a full 4 MiB region in 4 KiB steps.
     for(int i = 0; i < 1024; i++) {
         last_page[i] = phys | 3;
         phys += 4096;
@@ -19,6 +20,7 @@ void paging_map_virtual_to_phys(uint32_t virt, uint32_t phys) {
 }
 
 void paging_enable() {
+    // cr3 points at the page directory; bit 31 in cr0 turns paging on.
     asm volatile("mov %%eax, %%cr3": :"a"(page_dir_loc));
     asm volatile("mov %cr0, %eax");
     asm volatile("orl $0x80000000, %eax");
@@ -36,6 +38,7 @@ void InitPaging(void) {
         page_directory[i] = 0 | 2;
     }
 
+    // Keep early paging simple by identity-mapping the low kernel regions.
     paging_map_virtual_to_phys(0, 0);
     paging_map_virtual_to_phys(0x400000, 0x400000);
     

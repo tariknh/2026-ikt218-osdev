@@ -12,6 +12,7 @@ static void GdtSetEntry(
     uint8_t  access,
     uint8_t  granularity
 ) {
+    // x86 stores the descriptor fields split across several smaller fields.
     gdtEntries[index].base_low = (uint16_t)(base & 0xFFFF);
     gdtEntries[index].base_middle = (uint8_t)((base >> 16) & 0xFF);
     gdtEntries[index].base_high = (uint8_t)((base >> 24) & 0xFF);
@@ -28,10 +29,10 @@ void GdtInitialize(void) {
 
     GdtSetEntry(0, 0, 0, 0, 0);
 
-    // Kernel code segment: base 0, 4 GiB span, ring 0, executable, readable
+    // Flat kernel code segment covering the full 32-bit address space.
     GdtSetEntry(1, 0, 0x000FFFFF, 0x9A, 0xCF);
 
-    // Kernel data segment: base 0, 4 GiB span, ring 0, writable
+    // Matching flat data segment used by ds/es/fs/gs/ss after the flush.
     GdtSetEntry(2, 0, 0x000FFFFF, 0x92, 0xCF);
 
     GdtFlush((uint32_t)&gdtDescriptor);

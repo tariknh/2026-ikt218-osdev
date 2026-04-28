@@ -15,12 +15,14 @@ static uint32_t memory_used = 0;
 void InitKernelMemory(uint32_t* kernel_end) {
     uint32_t kernelEndAddr = (uint32_t)kernel_end;
 
+    // Leave one page after the kernel image before starting the heap.
     last_alloc = kernelEndAddr + 0x1000;
     heap_begin = last_alloc;
     pheap_end = 0x400000;
     pheap_begin = pheap_end - (MAX_PAGE_ALIGNED_ALLOCS * 4096);
     heap_end = pheap_begin;
     memset((char*)heap_begin, 0, heap_end - heap_begin);
+    // Reuse the normal heap to track which page-sized slots are in use.
     pheap_desc = (uint8_t *)malloc(MAX_PAGE_ALIGNED_ALLOCS);
 
     TerminalWriteString("Kernel heap starts at 0x");
@@ -74,6 +76,7 @@ void pfree(void *mem) {
 
     if (addr < pheap_begin || addr >= pheap_end) return;
 
+    // Convert the address back into the descriptor index for that 4 KiB slot.
     addr -= pheap_begin;
     addr /= 4096;
     pheap_desc[addr] = 0;
@@ -133,6 +136,7 @@ void* malloc(size_t size) {
     }
 
     nalloc:;
+    // Each block stores its metadata before the returned payload.
     if (last_alloc + size + sizeof(alloc_t) + 4 >= heap_end) {
         TerminalWriteString("Cannot allocate bytes! Out of memory.\n");
         for (;;) {

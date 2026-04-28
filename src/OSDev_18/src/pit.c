@@ -3,7 +3,8 @@
 #include <kernel/io.h>
 #include <kernel/terminal.h>
 
-static volatile uint32_t pit_ticks = 0; // Encasulated to pit.c to avoid accidental overwrite
+// Keep tick ownership local so only the PIT handler updates the time base.
+static volatile uint32_t pit_ticks = 0;
 
 uint32_t GetCurrentTick(void){
     return pit_ticks;
@@ -19,12 +20,13 @@ void PitInitialize(void){
 
     RegisterInterruptHandler(IRQ0, PitIrqHandler);
 
+    // 0x36 selects channel 0, low/high byte access, mode 3, binary counting.
     OutPortByte(PIT_CMD_PORT, 0x36);
     OutPortByte(PIT_CHANNEL0_PORT, (uint8_t)(divisor & 0xFF));
     OutPortByte(PIT_CHANNEL0_PORT, (uint8_t)((divisor >> 8) & 0xFF));
 }
 
-//More efficient way of sleeping compared to SleepBusy()
+// Halt between timer interrupts instead of burning CPU in a tight loop.
 void SleepInterrupt(uint32_t ticks_to_wait){
     uint32_t start_tick = GetCurrentTick();
     uint32_t end_tick = start_tick + ticks_to_wait;
@@ -34,15 +36,13 @@ void SleepInterrupt(uint32_t ticks_to_wait){
     }
 }
 
-/* "Consumes" 100% CPU power to effectively put entire system into sleep
-for (ticks_to_wait) amount of ticks / milliseconds */
+/* Busy-wait by repeatedly polling the tick counter until enough time passes. */
 void SleepBusy(uint32_t milliseconds){ 
     uint32_t start_tick = GetCurrentTick();
     uint32_t ticks_to_wait = milliseconds * TICKS_PER_MS;
 
     while((GetCurrentTick() - start_tick) < ticks_to_wait){
-        /* Occupy the CPU by with handling a whole lot of nothing.
-        Also known as busy waiting */
+        /* Spin until the timer handler advances pit_ticks far enough. */
     }
 }
 
