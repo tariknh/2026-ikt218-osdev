@@ -3,6 +3,7 @@
 #include "ports.h"
 #include "terminal.h"
 #include <libc/stdint.h>
+#include "pit.h"
 
 #define KEYBOARD_DATA_PORT 0x60
 #define KEY_RELEASED_MASK 0x80
@@ -117,7 +118,9 @@ void isr_handler(uint32_t interrupt_number)
 
 void irq_handler(uint32_t irq_number)
 {
-    if (irq_number == 1) {
+    if (irq_number == 0) {
+        pit_handle_tick();
+    } else if (irq_number == 1) {
         uint8_t scancode = port_byte_in(KEYBOARD_DATA_PORT);
         keyboard_handle_scancode(scancode);
     } else {
@@ -126,3 +129,5 @@ void irq_handler(uint32_t irq_number)
 
     pic_send_eoi((uint8_t)irq_number);
 }
+
+

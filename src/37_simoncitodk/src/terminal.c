@@ -42,3 +42,45 @@ void terminal_write(const char *text)
         i++;
     }
 }
+
+void terminal_write_dec(uint32_t value)
+{
+    char buffer[11];
+    int index = 0;
+
+    if (value == 0) {
+        terminal_write("0");
+        return;
+    }
+
+    while (value > 0 && index < 10) {
+        buffer[index] = (char)('0' + (value % 10));
+        value /= 10;
+        index++;
+    }
+
+    while (index > 0) {
+        index--;
+        char text[2];
+        text[0] = buffer[index];
+        text[1] = '\0';
+        terminal_write(text);
+    }
+}
+
+void terminal_write_hex(uint32_t value)
+{
+    const char *hex_digits = "0123456789ABCDEF";
+
+    terminal_write("0x");
+
+    for (int shift = 28; shift >= 0; shift -= 4) {
+        uint8_t digit = (uint8_t)((value >> shift) & 0xF);
+
+        char text[2];
+        text[0] = hex_digits[digit];
+        text[1] = '\0';
+
+        terminal_write(text);
+    }
+}

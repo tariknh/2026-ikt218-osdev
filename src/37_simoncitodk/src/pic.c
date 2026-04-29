@@ -48,3 +48,9 @@ void pic_mask_all_except_keyboard(void)
     port_byte_out(PIC1_DATA, 0xFD);
     port_byte_out(PIC2_DATA, 0xFF);
 }
+
+void pic_mask_all_except_timer_and_keyboard(void)
+{
+    port_byte_out(PIC1_DATA, 0xFC);
+    port_byte_out(PIC2_DATA, 0xFF);
+}

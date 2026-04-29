@@ -68,6 +68,9 @@ add_executable(uiaos-kernel
 	src/idt_flush.asm
 	src/isr.asm
 	src/pic.c
+	src/memory.c
+	src/memory_new.cpp
+	src/pit.c
 )
 
 # Include directories for the kernel target
