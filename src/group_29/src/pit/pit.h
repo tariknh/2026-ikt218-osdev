@@ -28,10 +28,20 @@ struct interrupt_frame;
 
 void init_pit();
 
+/// @brief Sleep function, checks if enough time has passed at every interrupt that fires
+/// @param milliseconds 
 void sleep_interrupt(uint32_t milliseconds);
+
+/// @brief Sleep function, repeatedly checks get_current_tick() to see if enough time has passed
+/// @param milliseconds 
 void sleep_busy(uint32_t milliseconds);
 
+/// @brief Get how many ticks have passed. Incremented every time the PIT fiires.
+/// @return pit_ticks, which is incremented at every PIT interrupt by pit_irq_handler
 uint32_t get_current_tick(void);
+
+/// @brief IRQ for the PIT, increments pit_ticks
+/// @param frame 
 void pit_irq_handler(struct interrupt_frame* frame);
 
 #endif
