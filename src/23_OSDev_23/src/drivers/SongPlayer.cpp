@@ -6,6 +6,8 @@ extern "C" {
     #include "common.h"
 }
 
+extern volatile int quit;
+
 void enable_speaker() {
     // Pseudocode for enable_speaker:
     // 1. Read the current state from the PC speaker control port.
@@ -74,6 +76,7 @@ void play_song_impl(Song *song) {
     //    c. Delay execution for the duration of the note (this can be implemented with a sleep function).
     //    d. Call stop_sound to end the note.
     for (size_t i = 0; i < song->length; i++) {
+        if (quit) break;
         printf("Note: %d Hz, Duration: %d ms\n", 
                song->notes[i].frequency, 
                song->notes[i].duration);

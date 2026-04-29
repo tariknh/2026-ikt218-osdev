@@ -229,23 +229,62 @@ void printf(const char* fmt, ...) {
 
 
 /*----------music-----------*/
+
+void show_music_menu(void) {
+    printf("\n  +===============================+\n");
+    printf("  |      Music Player             |\n");
+    printf("  +===============================+\n");
+    printf("  | 1. Super Mario                |\n");
+    printf("  | 2. Star Wars                  |\n");
+    printf("  | 3. Battlefield 1942           |\n");
+    printf("  | 4. Back                       |\n");
+    printf("  +===============================+\n");
+    printf("\n  Press a key to select...\n");
+}
+
 void play_music() {
     // How to play music
-    Song songs[] = {
-        {music_1, sizeof(music_1) / sizeof(Note)}
-    };
-    uint32_t n_songs = sizeof(songs) / sizeof(Song);
+    show_music_menu();
+    while(1) {
+    char choice = keyboard_getchar();
+
+    Song song;
+    if (choice == '1') {
+        printf("\n");
+        song.notes = music_1;
+        song.length = sizeof(music_1) / sizeof(Note);
+        quit = 0;
+        printf("Playing Super Mario theam song...\n");
+    } else if (choice == '2') {
+        printf("\n");
+        song.notes = starwars_theme;
+        song.length = sizeof(starwars_theme) / sizeof(Note);
+        quit = 0;
+        printf("Playing StarWars theam song...\n");
+    } else if (choice == '3') {
+        printf("\n");
+        song.notes = battlefield_1942_theme;
+        song.length = sizeof(battlefield_1942_theme) / sizeof(Note);
+        quit = 0;
+        printf("Playing battlefield team song...\n");
+    } else if (choice =='4'){
+        return;
+    } else if (choice =='q'){
+        printf("\n");
+        printf("stopping music...\n");
+        printf("Finished playing the song.\n");
+        show_music_menu();
+        quit = 1;
+    }
 
     SongPlayer* player = create_song_player();
 
-    while(!quit) {
-        for(uint32_t i = 0; i < n_songs; i++) {
-            if (quit) break;
-            printf("Playing Song...\n");
-            player->play_song(&songs[i]);
-            printf("Finished playing the song.\n");
+     while(!quit) {
+            player->play_song(&song);
         }
+    
     }
+    
 }
 
 
