@@ -5,8 +5,8 @@
 
 #define MOUSE_STATUS_PORT  0x64
 #define MOUSE_DATA_PORT    0x60
-#define CURSOR_COLOR       15   // white
-#define DRAW_COLOR         1   // orange maybe
+#define CURSOR_COLOR       15 
+#define DRAW_COLOR         1  
 
 static int mouse_x     = 160;
 static int mouse_y     = 100;
@@ -17,7 +17,7 @@ static int prev_y = 100;
 static uint8_t saved_pixel_color = 0;
 
 volatile int drawing_mode_active = 0;
-static volatile int right_clicked       = 0;  // set by handler, read by draw loop
+static volatile int right_clicked = 0;  
 
 static void mouse_wait_write() {
     int t = 100000;
@@ -71,12 +71,11 @@ static void mouse_handler(struct registers *r) {
     if (packet[0] & 0x10) dx |= 0xFFFFFF00;
     if (packet[0] & 0x20) dy |= 0xFFFFFF00;
 
-    // Multiply for speed, don't divide! 
     mouse_x += dx;
     mouse_y -= dy;
 
     if (mouse_x < 0) mouse_x = 0;
-    if (mouse_x >= 319) mouse_x = 319; // Use 318 because brush is 2x2
+    if (mouse_x >= 319) mouse_x = 319; 
     if (mouse_y < 0) mouse_y = 0;
     if (mouse_y >= 199) mouse_y = 199;
 
@@ -99,19 +98,21 @@ static void mouse_handler(struct registers *r) {
 
 void mouse_install() {
     mouse_wait_write();
-    outb(MOUSE_STATUS_PORT, 0xA8);          // enable auxiliary device
+    outb(MOUSE_STATUS_PORT, 0xA8);
 
     mouse_wait_write();
-    outb(MOUSE_STATUS_PORT, 0x20); // Read Command Byte
+    outb(MOUSE_STATUS_PORT, 0x20); 
+
     mouse_wait_read();
-    uint8_t status = (inb(MOUSE_DATA_PORT) | 0x02) & ~0x20; // Enable IRQ12 AND Clear Disable Mouse bit
+    uint8_t status = (inb(MOUSE_DATA_PORT) | 0x02) & ~0x20;
+
     mouse_wait_write();
-    outb(MOUSE_STATUS_PORT, 0x60); // Write Command Byte
+    outb(MOUSE_STATUS_PORT, 0x60);
+
     mouse_wait_write();
     outb(MOUSE_DATA_PORT, status);
-    mouse_write(0xF6); mouse_read();        // default settings, ACK
-    mouse_write(0xF4); mouse_read();        // enable reporting, ACK
-
+    mouse_write(0xF6); mouse_read();
+    mouse_write(0xF4); mouse_read();
     irq_install_handler(12, mouse_handler);
 }
 

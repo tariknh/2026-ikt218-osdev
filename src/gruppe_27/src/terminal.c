@@ -1,7 +1,6 @@
 #include "terminal.h"
 #include "common.h"
 
-// Standard VGA text mode size
 static const int VGA_WIDTH = 80;
 static const int VGA_HEIGHT = 25;
 static uint16_t* const VGA_BUFFER = (uint16_t*) 0xB8000;

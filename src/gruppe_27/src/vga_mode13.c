@@ -57,12 +57,7 @@ static const uint8_t text3_ac[21] = {
 
 /* ── Felles skrivefunksjon ────────────────────────────────────────── */
 
-static void write_vga_regs(uint8_t misc,
-                           const uint8_t *seq,
-                           const uint8_t *crtc,
-                           const uint8_t *gc,
-                           const uint8_t *ac)
-{
+static void write_vga_regs(uint8_t misc, const uint8_t *seq, const uint8_t *crtc, const uint8_t *gc, const uint8_t *ac) {
     __asm__("cli"); // Disable interrupts during VGA register programming
     outb(VGA_MISC_WRITE, misc);
 

@@ -147,10 +147,7 @@ void command_draw() {
     vga_clear(0); 
     mouse_set_drawing_mode(1);  
     while (!mouse_right_clicked()) {
-        __asm__("hlt");     // sleep until next interrupt
-
-        // Draw a single pixel in the corner that changes color every 1000 iterations
-        // add an escape key check here if you want a way out
+        __asm__("hlt");
     }
     mouse_set_drawing_mode(0);
     vga_exit_mode13();
