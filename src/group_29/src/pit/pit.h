@@ -4,6 +4,7 @@
 #define PIT_H
 
 #include "libc/stdint.h"
+#include "../io/io.h"
 
 struct interrupt_frame;
 

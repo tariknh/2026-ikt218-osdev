@@ -1,9 +1,5 @@
 #include "./vga_text_mode_interface.h"
 
-static void outb(uint16_t port, uint8_t value) {
-    __asm__ __volatile__("outb %0, %1" : : "a"(value), "Nd"(port));
-}
-
 void VgaTextModeInterfacePrint(struct VgaTextModeInterface* a, char* input, uint8_t attribute) {
     while (*input != 0 && (a->cursor.memory_position < a->cursor.memory_end)) {
         if (*input == '\n') {

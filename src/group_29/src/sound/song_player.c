@@ -4,24 +4,14 @@
 #include "libc/stddef.h"
 #include "../pit/pit.h"
 
-uint8_t speaker_inb(uint16_t port) {
-    uint8_t value;
-    __asm__ __volatile__("inb %1, %0" : "=a"(value) : "Nd"(port));
-    return value;
-}
-
-void speaker_outb(uint16_t port, uint8_t value) {
-    __asm__ __volatile__("outb %0, %1" : : "a"(value), "Nd"(port));
-}
-
 void enable_speaker(void) {
-    uint8_t state = speaker_inb(PC_SPEAKER_PORT);
-    speaker_outb(PC_SPEAKER_PORT, (uint8_t)(state | 0x03U));
+    uint8_t state = inb(PC_SPEAKER_PORT);
+    outb(PC_SPEAKER_PORT, (uint8_t)(state | 0x03U));
 }
 
 void disable_speaker(void) {
-    uint8_t state = speaker_inb(PC_SPEAKER_PORT);
-    speaker_outb(PC_SPEAKER_PORT, (uint8_t)(state & (uint8_t)(~0x03U)));
+    uint8_t state = inb(PC_SPEAKER_PORT);
+    outb(PC_SPEAKER_PORT, (uint8_t)(state & (uint8_t)(~0x03U)));
 }
 
 void play_sound(uint32_t frequency) {
@@ -34,15 +24,15 @@ void play_sound(uint32_t frequency) {
 
     divisor = (uint16_t)(PIT_BASE_FREQUENCY / frequency);
 
-    speaker_outb(PIT_CMD_PORT, 0xB6U);
-    speaker_outb(PIT_CHANNEL2_PORT, (uint8_t)(divisor & 0xFFU));
-    speaker_outb(PIT_CHANNEL2_PORT, (uint8_t)((divisor >> 8) & 0xFFU));
+    outb(PIT_CMD_PORT, 0xB6U);
+    outb(PIT_CHANNEL2_PORT, (uint8_t)(divisor & 0xFFU));
+    outb(PIT_CHANNEL2_PORT, (uint8_t)((divisor >> 8) & 0xFFU));
     enable_speaker();
 }
 
 void stop_sound(void) {
-    uint8_t state = speaker_inb(PC_SPEAKER_PORT);
-    speaker_outb(PC_SPEAKER_PORT, (uint8_t)(state & (uint8_t)(~0x03U)));
+    uint8_t state = inb(PC_SPEAKER_PORT);
+    outb(PC_SPEAKER_PORT, (uint8_t)(state & (uint8_t)(~0x03U)));
 }
 
 void play_song_impl(Song *song) {

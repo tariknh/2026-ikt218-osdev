@@ -53,16 +53,6 @@ uint8_t create_idt_attributes(bool present, int8_t ring, uint8_t type) {
     return attributes;
 }
 
-static void outb(uint16_t port, uint8_t val) {
-    __asm__ __volatile__("outb %0, %1\r\n" : : "a"(val), "dN"(port));
-}
-
-static uint8_t inb(uint16_t port) {
-    uint8_t ret;
-    __asm__ __volatile__("inb %1, %0" : "=a"(ret) : "Nd"(port));
-    return ret;
-}
-
 static void io_wait(void) {
     outb(0x80, 0);
 }

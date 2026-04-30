@@ -3,6 +3,7 @@
 
 #include "libc/stdint.h"
 #include "song.h"
+#include "../io/io.h"
 
 /// Plays the first built-in song during boot.
 void play_default_song(void);

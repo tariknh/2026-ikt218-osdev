@@ -3,10 +3,6 @@
 
 static volatile uint32_t pit_ticks = 0;
 
-static void pit_outb(uint16_t port, uint8_t value) {
-    __asm__ __volatile__("outb %0, %1" : : "a"(value), "dN"(port));
-}
-
 uint32_t get_current_tick(void) {
     return pit_ticks;
 }
@@ -16,15 +12,15 @@ __attribute__((target("general-regs-only")))
 void pit_irq_handler(struct interrupt_frame* frame) {
     (void)frame;
     pit_ticks++;
-    pit_outb(PIC1_CMD_PORT, PIC_EOI);
+    outb(PIC1_CMD_PORT, PIC_EOI);
 }
 
 void init_pit(void) {
     uint16_t divisor = DIVIDER;
 
-    pit_outb(PIT_CMD_PORT, 0x36);
-    pit_outb(PIT_CHANNEL0_PORT, (uint8_t)(divisor & 0xFFU));
-    pit_outb(PIT_CHANNEL0_PORT, (uint8_t)((divisor >> 8) & 0xFFU));
+    outb(PIT_CMD_PORT, 0x36);
+    outb(PIT_CHANNEL0_PORT, (uint8_t)(divisor & 0xFFU));
+    outb(PIT_CHANNEL0_PORT, (uint8_t)((divisor >> 8) & 0xFFU));
 }
 
 void sleep_interrupt(uint32_t milliseconds) {

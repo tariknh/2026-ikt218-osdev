@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdint.h"
+#include "../io/io.h"
 
 #define VGA_TERMINAL_WIDTH 80
 #define VGA_TERMINAL_HEIGHT 25
