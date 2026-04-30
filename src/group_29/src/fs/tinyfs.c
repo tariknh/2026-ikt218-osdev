@@ -36,17 +36,17 @@ static int16_t name_compare(const char left[], const char right[]) {
     return 0;
 }
 
-/** \brief Check that strlen(name) fits inside TINYFS_NAME_LENGTH and that it's not NULL or starts with NULL
+/** \brief Check that strlength(name) fits inside TINYFS_NAME_LENGTH and that it's not NULL or starts with NULL
  * \returns true if the check passes
 */
 static bool name_is_valid(const char name[]) {
-    int32_t length;
+    unsigned int length;
 
     if (name == NULL || name[0] == '\0') {
         return false;
     }
 
-    length = strlen(name);
+    length = strlength(name);
     return length > 0 && length < TINYFS_NAME_LENGTH;
 }
 
@@ -308,7 +308,7 @@ int8_t tinyfs_write_file(const char name[], const char content[]) {
         return TINYFS_STATUS_DISK_ERROR;
     }
 
-    size_bytes = (content == NULL) ? 0U : (uint32_t)strlen(content);
+    size_bytes = (content == NULL) ? 0U : (uint32_t)strlength(content);
     sector_count = sectors_for_size(size_bytes);
     entry_index = find_file_index(entries, name);
 

@@ -5,13 +5,13 @@ static CommandEntry commands[] = {
     { "echo", "<content>", "Prints arguments to screen", command_echo },
     { "clear", "[none]", "Clears the shell content", command_clear },
     { "setusername", "<new-username>", "Changes the shell user display name", command_set_username },
-    { "heapinfo", "[none]", "Displays information about the heap of memory", command_heapinfo },
+    { "heapinfo", "[none]", "Displays information about the memory heap", command_heapinfo },
     { "playsong", "<1-8 | help>", "Plays a song as defined in 'playsong help'", command_playsong },
     { "disktest", "[read|write]", "Reads or writes one raw disk sector", command_disktest },
-    { "format", "[none]", "Formats the tiny persistent filesystem", command_format },
-    { "ls", "[none]", "Lists files in the tiny filesystem", command_ls },
+    { "format", "[none]", "Formats and resets the flat filesystem", command_format },
+    { "ls", "[none]", "Lists files in the flat filesystem", command_ls },
     { "write", "<file> <text>", "Creates or overwrites a file", command_write_file },
-    { "cat", "<file>", "Prints a file from the tiny filesystem", command_cat }
+    { "cat", "<file>", "Prints a file from the flat filesystem", command_cat }
 };
 
 // static SongMapEntry song_data[] = {
@@ -96,7 +96,7 @@ static char* join_arguments(int argument_count, char* arguments[], int start_ind
     char* output;
 
     for (index = start_index; index < argument_count; ++index) {
-        total_length += strlen(arguments[index]);
+        total_length += strlength(arguments[index]);
         if (index + 1 < argument_count) {
             total_length += 1;
         }
@@ -142,7 +142,7 @@ int8_t command_help(int argument_count, char *arguments[]) {
     }
 
     for (int i = 0; i < command_count; i++) {
-        if (strcmp(commands[i].name, arguments[1]) == 0) {
+        if (strcompare(commands[i].name, arguments[1]) == 0) {
             // display_command_info(commands[i].name, commands[i].options, commands[i].description);
             command_index = i;
             command_found = 1;
@@ -207,7 +207,7 @@ int8_t command_set_username(int argument_count, char* arguments[]) {
     int8_t argument_result = check_argument_count(argument_count, 2);
     if (argument_result != COMMAND_VALID_ARGUMENTS) return argument_result;
 
-    // uint8_t length = strlen(arguments[1]);
+    // uint8_t length = strlength(arguments[1]);
     // if (length > USER_MAX_USERNAME_LENGTH) {
     //     return COMMAND_ARGUMENT_INVALID;
     // }
@@ -238,7 +238,7 @@ int8_t command_heapinfo(int argument_count, char *arguments[]) {
     uint8_t title_color = VgaColor(vga_black, vga_light_gray);
 
     // fragmentation color logic
-    uint8_t frag_color = value_color;
+    uint8_t frag_color;
     if (h.fragmentation_per_mille > 700) {
         frag_color = bad_color;
     } else if (h.fragmentation_per_mille > 400) {
@@ -358,7 +358,7 @@ int8_t command_playsong(int argument_count, char* arguments[]) {
     int8_t argument_result = check_argument_count(argument_count, 2);
     if (argument_result != COMMAND_VALID_ARGUMENTS) return argument_result;
 
-    if (strcmp(arguments[1], "help") == 0) {
+    if (strcompare(arguments[1], "help") == 0) {
         display_song_help();
         return COMMAND_SUCCESS;
     }
@@ -399,7 +399,7 @@ int8_t command_disktest(int argument_count, char *arguments[])
         sector[index] = 0U;
     }
 
-    if (argument_count == 1 || strcmp(arguments[1], "write") == 0) {
+    if (argument_count == 1 || strcompare(arguments[1], "write") == 0) {
         for (index = 0U; test_message[index] != '\0'; ++index) {
             sector[index] = (uint8_t)test_message[index];
         }
@@ -414,7 +414,7 @@ int8_t command_disktest(int argument_count, char *arguments[])
         }
     }
 
-    if (argument_count == 2 && strcmp(arguments[1], "read") != 0 && strcmp(arguments[1], "write") != 0) {
+    if (argument_count == 2 && strcompare(arguments[1], "read") != 0 && strcompare(arguments[1], "write") != 0) {
         return TINYFS_STATUS_DISKTEST_INVALID_USAGE;
     }
 
@@ -533,7 +533,7 @@ int8_t handle_command(int argument_count, char* arguments[]) {
     }
 
     for (int i = 0; i < command_count; i++) {
-        if (strcmp(arguments[0], commands[i].name) == 0) {
+        if (strcompare(arguments[0], commands[i].name) == 0) {
             return commands[i].command_function(argument_count, arguments);
         }
     }
