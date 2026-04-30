@@ -11,7 +11,7 @@
 /// @param string Pointer to a null-terminated string.
 ///
 /// @returns The length of the string
-int32_t strlen(const char string[]);
+int32_t strlength(const char string[]);
 
 
 /// @brief Compares two null-terminated strings lexicographically.
@@ -25,7 +25,7 @@ int32_t strlen(const char string[]);
 /// @returns 0 if both strings are equal, < 0 if the first differing character in string_a is less than in string_b, > 0 if the first differing character in string_a is greater than in string_b
 ///
 /// @warning The function assumes both pointers are valid and point to null-terminated strings. Passing NULL or non-terminated strings results in undefined behavior.
-int16_t strcmp(const char string_a[], const char string_b[]);
+int16_t strcompare(const char string_a[], const char string_b[]);
 
 
 /// @brief Converts a 32-bit signed integer to its decimal string representation.

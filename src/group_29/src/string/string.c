@@ -1,6 +1,6 @@
 #include "./string.h"
 
-int32_t strlen(const char string[]) {
+int32_t strlength(const char string[]) {
     int32_t length = 0;
 
     while (string[length] != '\0') {
@@ -10,7 +10,7 @@ int32_t strlen(const char string[]) {
     return length;
 }
 
-int16_t strcmp(const char string_a[], const char string_b[]) {
+int16_t strcompare(const char string_a[], const char string_b[]) {
     while (*string_a && (*string_a == *string_b)) {
         string_a++;
         string_b++;
@@ -133,7 +133,7 @@ char* format_string(char input_string[], int32_t value) {
         return NULL;
     }
 
-    uint16_t input_size = strlen(input_string);
+    uint16_t input_size = strlength(input_string);
 
     // worst case: input + int32 max + null
     char* out = (char*)malloc(input_size + 12);
@@ -166,7 +166,7 @@ char* format_string(char input_string[], int32_t value) {
 }
 
 int16_t string_copy(const char input[], char output[], int16_t output_length) {
-    int input_length = strlen(input);
+    int input_length = strlength(input);
 
     if (input_length >= output_length) {
         return -1;

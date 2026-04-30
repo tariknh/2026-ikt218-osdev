@@ -32,15 +32,12 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
     // init vga interface for printing
     init_vga_interface_for_printing();
 
-    // Terminal header and footer
-    print_color(" HEADER - This row will not be printed/scrolled on\n\n", VgaColor(vga_black, vga_white));
-    write_text_at(VGA_TERMINAL_HEIGHT - 1, 0, " FOOTER - This row will not be printed/scrolled on", VgaColor(vga_black, vga_white));
-
+    // Initialize GDT, keyboard and shell username
     gdt_init();
     init_keyboard();
     init_username();
 
-    print(" GDT loaded successfully!\n\n");
+    print("\n GDT loaded successfully!\n\n");
 
     // GDT Test:
     uint16_t cs, ds, ss;
@@ -86,15 +83,17 @@ int kernel_main_c(uint32_t magic, struct multiboot_info* mb_info_addr) {
         print(" free() reuse failed\n\n");
     }
 
-    char* output = format_string(" Testing formatting: The terminal has %d rows\n", VGA_TERMINAL_HEIGHT);
-    print(output);
-    free((void *)output);
+    // char* output = format_string(" Testing formatting: The terminal has %d rows\n", VGA_TERMINAL_HEIGHT);
+    // print(output);
+    // free((void *)output);
 
     if (tinyfs_is_ready()) {
         print(" TinyFS disk ready\n");
     } else {
         print(" TinyFS disk not formatted. Run format\n");
     }
+
+    print("\n Run 'help' to view commands\n\n");
 
     shell_init("user");
 

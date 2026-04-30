@@ -18,7 +18,7 @@ static ShellState shell_state;
 // }
 
 static uint8_t get_shell_prompt_width(void) {
-    return (uint8_t)(strlen(user_get_username()) + SHELL_INPUT_FIELD_MARGIN);
+    return (uint8_t)(strlength(user_get_username()) + SHELL_INPUT_FIELD_MARGIN);
 }
 
 static uint16_t shell_max_edit_length(void) {
