@@ -11,21 +11,10 @@
 #include <menu.h>
 
 
-/* ───────────────────────────────────────────────────────────────
- * VGA Text-Mode Terminal
- *
- * The VGA text buffer is mapped at physical address 0xB8000.
- * Each cell is 2 bytes:
- *   byte 0 – ASCII character
- *   byte 1 – colour attribute (foreground | background << 4)
- * The standard text screen is 80 columns × 25 rows.
- * ─────────────────────────────────────────────────────────────── */
-
 #define VGA_ADDRESS  0xB8000
 #define VGA_COLS     80
 #define VGA_ROWS     25
 
-/* Colour byte: white (0xF) text on black (0x0) background */
 #define VGA_COLOR    0x0F
 
 extern uint32_t end;
@@ -63,11 +52,9 @@ static void serial_write(const char *str)
     }
 }
 
-/* Current cursor position */
 static int terminal_col = 0;
 static int terminal_row = 0;
 
-/* terminal_clear – fill every cell with a blank space */
 void terminal_clear(void)
 {
     int row;
@@ -81,7 +68,6 @@ void terminal_clear(void)
     terminal_row = 0;
 }
 
-/* terminal_scroll – shift every row up by one, blank the last row */
 void terminal_scroll(void)
 {
     int row;
@@ -91,7 +77,6 @@ void terminal_scroll(void)
         for (col = 0; col < VGA_COLS; col++)
             vga[(row - 1) * VGA_COLS + col] = vga[row * VGA_COLS + col];
 
-    /* Blank the bottom row */
     for (col = 0; col < VGA_COLS; col++)
         vga[(VGA_ROWS - 1) * VGA_COLS + col] =
             (unsigned short)(' ' | (VGA_COLOR << 8));
@@ -99,7 +84,6 @@ void terminal_scroll(void)
     terminal_row = VGA_ROWS - 1;
 }
 
-/* terminal_putchar – write a single character to the screen */
 void terminal_putchar(char c)
 {
     if (c == '\n') {
@@ -108,7 +92,6 @@ void terminal_putchar(char c)
     } else if (c == '\r') {
         terminal_col = 0;
     } else if (c == '\b') {
-        /* Backspace: move cursor back one position */
         if (terminal_col > 0) {
             terminal_col--;
         } else if (terminal_row > 0) {
@@ -120,19 +103,16 @@ void terminal_putchar(char c)
             (unsigned short)((unsigned char)c | (VGA_COLOR << 8));
         terminal_col++;
 
-        /* Wrap at right edge */
         if (terminal_col >= VGA_COLS) {
             terminal_col = 0;
             terminal_row++;
         }
     }
 
-    /* Scroll if we have gone past the last row */
     if (terminal_row >= VGA_ROWS)
         terminal_scroll();
 }
 
-/* terminal_write – write a null-terminated string to the screen */
 void terminal_write(const char *str)
 {
     int i;
@@ -141,53 +121,40 @@ void terminal_write(const char *str)
         terminal_putchar(str[i]);
 }
 
-/* ───────────────────────────────────────────────────────────────
- * Kernel Entry Point
- * ─────────────────────────────────────────────────────────────── */
 void main(void)
 {
     serial_init();
     serial_write("kernel: entered main\n");
 
-    /* 1. Set up the Global Descriptor Table */
     gdt_init();
     serial_write("kernel: gdt loaded\n");
 
     pic_remap();
 
-    outb(0x21, 0xFC); // Enable IRQ0 (timer) and IRQ1 (keyboard)
-    outb(0xA1, 0xFF); // Mask everything else
+    outb(0x21, 0xFC);
+    outb(0xA1, 0xFF);
 
-    /* 2. Set up the Interrupt Descriptor Table */
     idt_init();
     serial_write("kernel: idt loaded\n");
 
-    /* 3. Initialise memory management and paging */
     init_kernel_memory(&end);
     init_paging();
 
-    /* 4. Initialise the Programmable Interval Timer */
     init_pit();
 
-    /* 5. Initialise keyboard input buffer */
     input_init();
 
-    /* 5. Initialise the text-mode terminal */
     terminal_clear();
 
-    /* 6. Enable interrupts */
     __asm__ volatile("sti");
 
-    /* 7. Boot message */
     printf("lazarOS booting...\n");
     printf("GDT loaded, IDT loaded, PIT running at %d Hz\n", TARGET_FREQUENCY);
     printf("Memory and paging initialised.\n\n");
     sleep_interrupt(1500);
 
-    /* 8. Launch the main menu */
     menu_run();
 
-    /* Should never reach here */
     while (1)
         __asm__ volatile("hlt");
 }
