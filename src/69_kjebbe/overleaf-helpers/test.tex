@@ -1,0 +1,4285 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Appendix}
+\label{sect:appendix}
+
+
+\section{Build System}
+\label{apx:build_system}
+
+
+\subsection{CMake and Linker Scripts}
+\label{apx:cmake_and_linker_scripts}
+
+
+\captionof{listing}{Implementation of \texttt{CMakeLists.txt}}
+\label{lst:cmakelists_txt}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{text}
+########################################
+# The University of Agder Operating System: UiAOS
+# Languages: C, C++, and NASM Assembly
+# Tip: Use Ctrl+Shift+P in Visual Studio Code to get started with CMake.
+########################################
+
+# Skip compiler self-tests (saves time, avoids errors with some cross compilers)
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+
+# Minimum required CMake version
+cmake_minimum_required(VERSION 3.22.1)
+
+# Project name and languages used
+project(UiAOS LANGUAGES C CXX ASM_NASM)
+
+# Create a lock file to prevent parallel runs of CMake
+file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)
+
+########################################
+# CMake: Import Plugins
+########################################
+include(FetchContent)
+
+########################################
+# UiAOS: Variables
+########################################
+set(OS_ARCH_TARGET "i386")  # x86_64 
+set(OS_NAME "UiA Operating System")
+set(OS_KERNEL_NAME "uiaos")
+set(OS_KERNEL_BINARY "kernel.bin")
+set(OS_KERNEL_IMAGE "kernel.iso")
+
+########################################
+# Compiler Configuration
+########################################
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 99)
+
+########################################
+# Assembly Configuration
+########################################
+set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS "s;S;asm")
+if(OS_ARCH_TARGET STREQUAL "i386")
+	set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf32")
+elseif(OS_ARCH_TARGET STREQUAL "x86_64")
+	set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf64")
+endif()
+
+# Command to compile NASM files
+set(CMAKE_ASM_NASM_COMPILE_OBJECT 
+    "<CMAKE_ASM_NASM_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -f ${CMAKE_ASM_NASM_OBJECT_FORMAT} -o <OBJECT> <SOURCE>")
+
+########################################
+# OS Target
+########################################
+set(OS_KERNEL_LINKER "${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${OS_ARCH_TARGET}/linker.ld")
+
+# Add executable target for the kernel
+add_executable(uiaos-kernel
+	src/multiboot2.asm
+    src/kernel.c
+	src/kernel.cpp
+    src/lib/gdt.c
+    src/lib/idt.c
+    src/lib/isr.asm
+    src/lib/isr.c
+    src/lib/irq.asm
+    src/lib/irq.c
+    src/lib/keyboard.c
+    src/lib/program.c
+    src/lib/piano.c
+    src/libc/stdio.c
+    src/lib/memory/malloc.c
+    src/lib/memory/memory.c
+    src/lib/memory/memutils.c
+    src/lib/pit.c
+    src/lib/song.cpp
+	src/lib/menu.c
+	src/lib/radio.c
+	src/lib/matrix.c
+	src/lib/fedrelandet.c
+	src/lib/shell.c
+
+)
+
+# Include directories for the kernel target
+target_include_directories(uiaos-kernel PUBLIC include include/libc)
+
+
+# Specify compile options for C and C++
+target_compile_options(uiaos-kernel PRIVATE
+    $<$<COMPILE_LANGUAGE:C>:-Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -g>
+    $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-m32 -march=i386 -Wno-unused-variable -Wno-unused-parameter>
+)
+
+
+# Specify link options for C and C++
+target_link_options(uiaos-kernel PUBLIC
+    $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-ffreestanding -nostdlib -fno-builtin -static -pie -O0 -T${OS_KERNEL_LINKER} -g>
+)
+
+
+target_link_options(
+	uiaos-kernel
+	PUBLIC "-ffreestanding"
+	PUBLIC "-nostdlib"
+	PUBLIC "-static"
+	PUBLIC "-pie"
+	PUBLIC "-T${OS_KERNEL_LINKER}"
+)
+
+
+# Set properties for the kernel target
+set_target_properties(uiaos-kernel PROPERTIES
+    OUTPUT_NAME "${OS_KERNEL_BINARY}"
+    #LINK_FLAGS "${OS_KERNEL_LINK_FLAGS}"
+)
+
+########################################
+# Create Empty Fat32 Disk Image
+########################################
+set(DISK_IMAGE "${CMAKE_CURRENT_BINARY_DIR}/disk.iso")
+
+# Custom target to create an empty FAT32 disk image of 32MB
+add_custom_target(
+    create-fat32-disk
+    COMMAND dd if=/dev/zero of=${DISK_IMAGE} bs=1M count=32
+    COMMAND mkfs.fat -F 32 ${DISK_IMAGE}
+    VERBATIM
+)
+
+########################################
+# OS-Image Target
+########################################
+set(ISO_DIR ${CMAKE_CURRENT_BINARY_DIR}/iso)
+set(LIMINE_CONFIG_DIR ${CMAKE_SOURCE_DIR})
+set(LIMINE_DIR /usr/local/limine)
+add_custom_target(
+	uiaos-create-image
+	COMMAND rm -rf ${ISO_DIR}
+	COMMAND mkdir -p ${ISO_DIR}
+	COMMAND cp -v $<TARGET_FILE:uiaos-kernel> 
+	 	${LIMINE_CONFIG_DIR}/limine.cfg ${LIMINE_DIR}/limine-bios.sys ${LIMINE_DIR}/limine-bios-cd.bin
+		${LIMINE_DIR}/limine-uefi-cd.bin ${ISO_DIR}/
+	COMMAND mkdir -p ${ISO_DIR}/EFI/BOOT
+	COMMAND cp -v ${LIMINE_DIR}/BOOTX64.EFI ${ISO_DIR}/EFI/BOOT/
+	COMMAND cp -v ${LIMINE_DIR}/BOOTIA32.EFI ${ISO_DIR}/EFI/BOOT/
+	COMMAND xorriso -as mkisofs -b limine-bios-cd.bin
+	 	-no-emul-boot -boot-load-size 4 -boot-info-table
+	 	--efi-boot limine-uefi-cd.bin
+	 	-efi-boot-part --efi-boot-image --protective-msdos-label
+	 	${ISO_DIR} -o ${CMAKE_CURRENT_BINARY_DIR}/kernel.iso
+	COMMAND ${LIMINE_DIR}/limine bios-install ${CMAKE_CURRENT_BINARY_DIR}/kernel.iso
+	#COMMAND sudo rm -rf ${ISO_DIR}
+	DEPENDS create-fat32-disk uiaos-kernel
+	VERBATIM
+)
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{linker.ld}}
+\label{lst:linker_ld}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{text}
+ENTRY(_start)
+
+SECTIONS {
+    . = 1M;
+
+    .boot :
+    {
+        /* Ensure that the multiboot header is at the beginning! */
+        *(.multiboot_header)
+    }
+
+    . = ALIGN(4K);
+    .text :
+    {
+        *(.text .text.*)
+    }
+
+    . = ALIGN(4K);
+    .rodata :
+    {
+        *(.rodata .rodata.*)
+    }
+
+    . = ALIGN(4K);
+    .data :
+    {
+        *(.data .data.*)
+    }
+
+    . = ALIGN(4K);
+    .bss :
+    {
+        *(.bss .bss.*)
+    }
+
+	end = .; _end = .; __end = .;
+}
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{linker.ld}}
+\label{lst:linker_ld}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{text}
+/* Tell the linker that we want an x86_64 ELF64 output file */
+OUTPUT_FORMAT(elf64-x86-64)
+OUTPUT_ARCH(i386:x86-64)
+ 
+/* We want the symbol _start to be our entry point */
+ENTRY(_start)
+ 
+/* Define the program headers we want so the bootloader gives us the right */
+/* MMU permissions */
+PHDRS
+{
+    text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ; /* Execute + Read */
+    rodata  PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
+    data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
+    dynamic PT_DYNAMIC FLAGS((1 << 1) | (1 << 2)) ; /* Dynamic PHDR for relocations */
+}
+ 
+SECTIONS
+{
+    /* We wanna be placed in the topmost 2GiB of the address space, for optimisations */
+    /* and because that is what the Limine spec mandates. */
+    /* Any address in this region will do, but often 0xffffffff80000000 is chosen as */
+    /* that is the beginning of the region. */
+    . = 0xffffffff80000000;
+ 
+    .text : {
+        *(.text .text.*)
+    } :text
+ 
+    /* Move to the next memory page for .rodata */
+    . += CONSTANT(MAXPAGESIZE);
+ 
+    .rodata : {
+        *(.rodata .rodata.*)
+    } :rodata
+ 
+    /* Move to the next memory page for .data */
+    . += CONSTANT(MAXPAGESIZE);
+ 
+    .data : {
+        *(.data .data.*)
+    } :data
+ 
+    /* Dynamic section for relocations, both in its own PHDR and inside data PHDR */
+    .dynamic : {
+        *(.dynamic)
+    } :data :dynamic
+ 
+    /* NOTE: .bss needs to be the last thing mapped to :data, otherwise lots of */
+    /* unnecessary zeros will be written to the binary. */
+    /* If you need, for example, .init_array and .fini_array, those should be placed */
+    /* above this. */
+    .bss : {
+        *(.bss .bss.*)
+        *(COMMON)
+    } :data
+ 
+    /* Discard .note.* and .eh_frame since they may cause issues on some hosts. */
+    /DISCARD/ : {
+        *(.eh_frame)
+        *(.note .note.*)
+    }
+}
+\end{minted}
+
+
+\subsection{Boot Configuration}
+\label{apx:boot_configuration}
+
+
+\captionof{listing}{Implementation of \texttt{limine.cfg}}
+\label{lst:limine_cfg}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{text}
+# Timeout in seconds that Limine will use before automatically booting.
+TIMEOUT=5
+ 
+# The entry name that will be displayed in the boot menu.
+:UiA OS (KASLR on)
+    # We use the Limine boot protocol.
+    PROTOCOL=multiboot2
+ 
+    # Path to the kernel to boot. boot:/// represents the partition on which limine.cfg is located.
+    KERNEL_PATH=boot:///kernel.bin
+ 
+# Same thing, but without KASLR.
+:UiA OS (KASLR off)
+    PROTOCOL=multiboot2
+ 
+    # Disable KASLR (it is enabled by default for relocatable kernels)
+    KASLR=no
+ 
+    KERNEL_PATH=boot:///kernel.bin
+\end{minted}
+
+
+\subsection{Scripts}
+\label{apx:scripts}
+
+
+\captionof{listing}{Implementation of \texttt{start\_qemu.sh}}
+\label{lst:start_qemu_sh}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{bash}
+#!/bin/bash
+KERNEL_PATH=$1
+DISK_PATH=$2
+
+# Start QEMU in the background
+echo "Starting QEMU"
+qemu-system-i386 -S -gdb tcp::1234 -boot d -hda $KERNEL_PATH -hdb $DISK_PATH -m 64 -audiodev sdl,id=sdl1,out.buffer-length=40000 -machine pcspk-audiodev=sdl1 -serial pty &
+QEMU_PID=$!
+
+# Function to check if gdb is running
+is_gdb_running() {
+    pgrep -f "gdb-multiarch" > /dev/null
+}
+
+# Function to handle termination signals
+cleanup() {
+    echo "Stopping QEMU..."
+    kill $QEMU_PID
+    exit 0
+}
+
+# Trap SIGINT and SIGTERM signals
+trap cleanup SIGINT SIGTERM
+
+# Wait for gdb to start
+echo "Waiting for gdb to start..."
+while ! is_gdb_running; do
+    sleep 1
+done
+echo "gdb started."
+
+# Wait for gdb to stop
+echo "Monitoring gdb connection..."
+while is_gdb_running; do
+    sleep 1
+done
+
+# Cleanup after gdb stops
+cleanup
+
+\end{minted}
+
+
+\section{Standard Library}
+\label{apx:standard_library}
+
+
+\subsection{libc Headers}
+\label{apx:libc_headers}
+
+
+\captionof{listing}{Implementation of \texttt{limits.h}}
+\label{lst:limits_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+#define INT_MAX 2147483647
+
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{stdarg.h}}
+\label{lst:stdarg_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+// va_list
+typedef __builtin_va_list va_list;
+
+// va_start
+#define va_start(v, l) __builtin_va_start(v, l)
+
+// va_end
+#define va_end(v) __builtin_va_end(v)
+
+// va_arg
+#define va_arg(v, l) __builtin_va_arg(v, l)
+
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{stdbool.h}}
+\label{lst:stdbool_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once 
+
+#define bool unsigned char
+#define true 1
+#define false 0
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{stddef.h}}
+\label{lst:stddef_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+#define NULL ((void*)0)
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{stdint.h}}
+\label{lst:stdint_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+typedef long unsigned int size_t;
+typedef long unsigned int uint32_t;
+typedef unsigned short uint16_t;
+typedef unsigned char uint8_t;
+typedef long int int32_t;
+typedef short int16_t;
+typedef signed char int8_t;
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{stdio.h}}
+\label{lst:stdio_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+#include "stdbool.h"
+#include "stddef.h"
+#include "stdint.h"
+// Solid colours for the Norwegian flag
+#define VGA_RED 0x44
+#define VGA_WHITE 0x77
+#define VGA_BLUE 0x11
+
+// Foreground colours on black background
+#define VGA_BLUE_ON_BLACK 0x01
+#define VGA_GREEN_ON_BLACK 0x02
+#define VGA_CYAN_ON_BLACK 0x03
+#define VGA_RED_ON_BLACK 0x04
+#define VGA_MAGENTA_ON_BLACK 0x05
+#define VGA_BROWN_ON_BLACK 0x06
+#define VGA_GREY_ON_BLACK 0x07
+#define VGA_DARK_GREY_ON_BLACK 0x08
+#define VGA_LIGHT_BLUE_ON_BLACK 0x09
+#define VGA_LIGHT_GREEN_ON_BLACK 0x0A
+#define VGA_LIGHT_CYAN_ON_BLACK 0x0B
+#define VGA_LIGHT_RED_ON_BLACK 0x0C
+#define VGA_LIGHT_MAGENTA_ON_BLACK 0x0D
+#define VGA_YELLOW_ON_BLACK 0x0E
+#define VGA_WHITE_ON_BLACK 0x0F
+
+int printf(const char *__restrict__ format, ...);
+int printf_color(const char *__restrict__ format, uint8_t terminal_color, ...);
+void clearTerminal();
+void terminal_set_char(int x, int y, char c, uint8_t terminal_color);
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{string.h}}
+\label{lst:string_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+
+size_t strlen(const char* str);
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{system.h}}
+\label{lst:system_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+#include "../../include/libc/stdio.h"
+
+// Kernel panic message
+static inline void panic(const char *msg) {
+  printf("KERNEL PANIC: ");
+  printf(msg);
+  asm volatile("cli");
+  asm volatile("hlt");
+}
+
+\end{minted}
+
+
+\subsection{stdio Implementation}
+\label{apx:stdio_implementation}
+
+
+\captionof{listing}{Implementation of \texttt{stdio.c}}
+\label{lst:stdio_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/libc/stdio.h"  //
+#include "../../include/libc/stdarg.h" //
+#include "../../include/libc/stddef.h"
+#include "../../include/libc/stdint.h"
+
+#define VGA_WIDTH 80       // Width of screen, number of columns
+#define VGA_HEIGHT 25      // Height of screen, number of rows
+#define VGA_MEMORY 0xB8000 // Memory location of VGA memory buffer
+
+static uint16_t *terminal_buffer =
+    (uint16_t *)VGA_MEMORY;  // Terminal buffer, each index represents one
+                             // character and one colour.
+static int terminal_row = 0; // used to index the terminal buffer
+static int terminal_col = 0; // used to index the terminal buffer
+static uint8_t terminal_color = 0x07; // light grey on black.
+
+// terminal_scroll moves every line up by one and cleans the last row.
+static void terminal_scroll(uint8_t terminal_color) {
+  for (int row = 1; row < VGA_HEIGHT; row++) {
+    for (int col = 0; col < VGA_WIDTH; col++) {
+      terminal_buffer[(row - 1) * VGA_WIDTH + col] =
+          terminal_buffer[row * VGA_WIDTH + col];
+    }
+  }
+  for (int col = 0; col < VGA_WIDTH; col++) {
+    terminal_buffer[(VGA_HEIGHT - 1) * VGA_WIDTH + col] =
+        (terminal_color << 8) | ' ';
+  }
+  terminal_row = VGA_HEIGHT - 1;
+}
+
+// writes a single character to the VGA buffer.
+// uses terminal_col and terminal_row for indexing and state.
+void terminal_putchar(char c, uint8_t terminal_color) {
+  if (c == '\\n') {
+    terminal_col = 0;
+    terminal_row++;
+  } else {
+    int index = terminal_row * VGA_WIDTH + terminal_col;
+    terminal_buffer[index] = (terminal_color << 8) | c;
+    terminal_col++;
+
+    if (terminal_col >= VGA_WIDTH) {
+      terminal_col = 0;
+      terminal_row++;
+    }
+  }
+
+  if (terminal_row >= VGA_HEIGHT) {
+    terminal_scroll(terminal_color);
+  }
+}
+
+// Uses terminal_putchar to write strings.
+static void terminal_write(const char *str) {
+  for (int i = 0; str[i] != '\\0'; i++) {
+    terminal_putchar(str[i], terminal_color);
+  }
+}
+
+// Helper function that formats integer values to text. and prints them to
+// the screen
+static void print_int(int value) {
+  if (value < 0) {
+    terminal_putchar('-', terminal_color);
+    value = -value;
+  }
+
+  char buf[12];
+  int i = 0;
+
+  if (value == 0) {
+    terminal_putchar('0', terminal_color);
+    return;
+  }
+
+  while (value > 0) {
+    // uses mod to get the last digit.
+    // uses '0' to get starting index of numbers in ASCII which we use for our
+    // lookup table
+    buf[i++] = '0' + (value % 10);
+    // divides by 10 so the number shift one place to the right.
+    value /= 10;
+  }
+
+  while (i > 0) {
+    terminal_putchar(buf[--i], terminal_color);
+  }
+}
+
+// helper function for printing hex values
+static void print_hex(uint32_t value) {
+  char hex_chars[] = "0123456789ABCDEF";
+  // always prints 0x
+  terminal_write("0x");
+
+  char buf[8];
+  int i = 0;
+
+  if (value == 0) {
+    terminal_putchar('0', terminal_color);
+    return;
+  }
+
+  while (value > 0) {
+    // Gets the last 4 bits which is the same as one hex value.
+    buf[i++] = hex_chars[value & 0xF];
+    // shifts all bits down by four. discarding the four lower bits.
+    // Preparing for next iteration of the while loop
+    value >>= 4;
+  }
+
+  while (i > 0) {
+    terminal_putchar(buf[--i], terminal_color);
+  }
+}
+
+// Helper function for printf, so that we can have printf with and without
+// default colour.
+static int vprintf_color(const char *format, va_list args,
+                         uint8_t terminal_color) {
+  // loops through every character and selects the appropriate helper function
+  // to use for printing.
+  for (int i = 0; format[i] != '\\0'; i++) {
+    if (format[i] == '%' && format[i + 1] != '\\0') {
+      i++;
+      switch (format[i]) {
+      case 's':
+        terminal_write(va_arg(args, const char *));
+        break;
+      case 'd':
+        print_int(va_arg(args, int));
+        break;
+      case 'x':
+        print_hex(va_arg(args, uint32_t));
+        break;
+      case 'c':
+        terminal_putchar((char)va_arg(args, int), terminal_color);
+        break;
+      case '%':
+        terminal_putchar('%', terminal_color);
+        break;
+      }
+    } else {
+      terminal_putchar(format[i], terminal_color);
+    }
+  }
+}
+
+// The main function this file exposes.
+// Every other function is a helper function.
+int printf(const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  vprintf_color(format, args, terminal_color);
+  va_end(args);
+  return 0;
+}
+
+int printf_color(const char *format, uint8_t terminal_color, ...) {
+  // Uses va_list, va_start, va_end to have a undefined amount of arguments
+  // given to the function.
+  va_list args;
+  va_start(args, terminal_color);
+  vprintf_color(format, args, terminal_color);
+  va_end(args);
+  return 0;
+}
+
+// set specific index to some specific character and colour
+void terminal_set_char(int x, int y, char c, uint8_t terminal_color) {
+  if (x < 0 || x >= VGA_WIDTH || y < 0 || y >= VGA_HEIGHT)
+    return;
+  terminal_buffer[y * VGA_WIDTH + x] = (terminal_color << 8) | c;
+}
+
+void clearTerminal() {
+  for (int x = 0; x < VGA_WIDTH; x++) {
+    for (int y = 0; y < VGA_HEIGHT; y++) {
+      terminal_set_char(x, y, ' ', terminal_color);
+    }
+  }
+  terminal_row = 0;
+  terminal_col = 0;
+}
+
+void terminal_write_color(const char *str, uint8_t terminal_color) {
+  for (int i = 0; str[i] != '\\0'; i++) {
+    terminal_putchar(str[i], terminal_color);
+  }
+}
+
+\end{minted}
+
+
+\section{Assignment 2 - Bootloader and GDT}
+\label{apx:assignment_2___bootloader_and_gdt}
+
+
+\subsection{Multiboot2}
+\label{apx:multiboot2}
+
+
+\captionof{listing}{Implementation of \texttt{multiboot2.h}}
+\label{lst:multiboot2_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+/*   multiboot2.h - Multiboot 2 header file. */
+/*   Copyright (C) 1999,2003,2007,2008,2009,2010  Free Software Foundation, Inc.
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to
+ *  deal in the Software without restriction, including without limitation the
+ *  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ *  sell copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL ANY
+ *  DEVELOPER OR DISTRIBUTOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+ *  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef MULTIBOOT_HEADER
+#define MULTIBOOT_HEADER 1
+
+/*  How many bytes from the start of the file we search for the header. */
+#define MULTIBOOT_SEARCH                        32768
+#define MULTIBOOT_HEADER_ALIGN                  8
+
+/*  The magic field should contain this. */
+#define MULTIBOOT2_HEADER_MAGIC                 0xe85250d6
+
+/*  This should be in %eax. */
+#define MULTIBOOT2_BOOTLOADER_MAGIC             0x36d76289
+
+/*  Alignment of multiboot modules. */
+#define MULTIBOOT_MOD_ALIGN                     0x00001000
+
+/*  Alignment of the multiboot info structure. */
+#define MULTIBOOT_INFO_ALIGN                    0x00000008
+
+/*  Flags set in the ’flags’ member of the multiboot header. */
+
+#define MULTIBOOT_TAG_ALIGN                  8
+#define MULTIBOOT_TAG_TYPE_END               0
+#define MULTIBOOT_TAG_TYPE_CMDLINE           1
+#define MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME  2
+#define MULTIBOOT_TAG_TYPE_MODULE            3
+#define MULTIBOOT_TAG_TYPE_BASIC_MEMINFO     4
+#define MULTIBOOT_TAG_TYPE_BOOTDEV           5
+#define MULTIBOOT_TAG_TYPE_MMAP              6
+#define MULTIBOOT_TAG_TYPE_VBE               7
+#define MULTIBOOT_TAG_TYPE_FRAMEBUFFER       8
+#define MULTIBOOT_TAG_TYPE_ELF_SECTIONS      9
+#define MULTIBOOT_TAG_TYPE_APM               10
+#define MULTIBOOT_TAG_TYPE_EFI32             11
+#define MULTIBOOT_TAG_TYPE_EFI64             12
+#define MULTIBOOT_TAG_TYPE_SMBIOS            13
+#define MULTIBOOT_TAG_TYPE_ACPI_OLD          14
+#define MULTIBOOT_TAG_TYPE_ACPI_NEW          15
+#define MULTIBOOT_TAG_TYPE_NETWORK           16
+#define MULTIBOOT_TAG_TYPE_EFI_MMAP          17
+#define MULTIBOOT_TAG_TYPE_EFI_BS            18
+#define MULTIBOOT_TAG_TYPE_EFI32_IH          19
+#define MULTIBOOT_TAG_TYPE_EFI64_IH          20
+#define MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR    21
+
+#define MULTIBOOT_HEADER_TAG_END  0
+#define MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST  1
+#define MULTIBOOT_HEADER_TAG_ADDRESS  2
+#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS  3
+#define MULTIBOOT_HEADER_TAG_CONSOLE_FLAGS  4
+#define MULTIBOOT_HEADER_TAG_FRAMEBUFFER  5
+#define MULTIBOOT_HEADER_TAG_MODULE_ALIGN  6
+#define MULTIBOOT_HEADER_TAG_EFI_BS        7
+#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI32  8
+#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64  9
+#define MULTIBOOT_HEADER_TAG_RELOCATABLE  10
+
+#define MULTIBOOT_ARCHITECTURE_I386  0
+#define MULTIBOOT_ARCHITECTURE_MIPS32  4
+#define MULTIBOOT_HEADER_TAG_OPTIONAL 1
+
+#define MULTIBOOT_LOAD_PREFERENCE_NONE 0
+#define MULTIBOOT_LOAD_PREFERENCE_LOW 1
+#define MULTIBOOT_LOAD_PREFERENCE_HIGH 2
+
+#define MULTIBOOT_CONSOLE_FLAGS_CONSOLE_REQUIRED 1
+#define MULTIBOOT_CONSOLE_FLAGS_EGA_TEXT_SUPPORTED 2
+
+#ifndef ASM_FILE
+
+typedef unsigned char           multiboot_uint8_t;
+typedef unsigned short          multiboot_uint16_t;
+typedef unsigned int            multiboot_uint32_t;
+typedef unsigned long long      multiboot_uint64_t;
+
+struct multiboot_header
+{
+  /*  Must be MULTIBOOT_MAGIC - see above. */
+  multiboot_uint32_t magic;
+
+  /*  ISA */
+  multiboot_uint32_t architecture;
+
+  /*  Total header length. */
+  multiboot_uint32_t header_length;
+
+  /*  The above fields plus this one must equal 0 mod 2^32. */
+  multiboot_uint32_t checksum;
+};
+
+struct multiboot_header_tag
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+};
+
+struct multiboot_header_tag_information_request
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+  multiboot_uint32_t requests[0];
+};
+
+struct multiboot_header_tag_address
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+  multiboot_uint32_t header_addr;
+  multiboot_uint32_t load_addr;
+  multiboot_uint32_t load_end_addr;
+  multiboot_uint32_t bss_end_addr;
+};
+
+struct multiboot_header_tag_entry_address
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+  multiboot_uint32_t entry_addr;
+};
+
+struct multiboot_header_tag_console_flags
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+  multiboot_uint32_t console_flags;
+};
+
+struct multiboot_header_tag_framebuffer
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+  multiboot_uint32_t width;
+  multiboot_uint32_t height;
+  multiboot_uint32_t depth;
+};
+
+struct multiboot_header_tag_module_align
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+};
+
+struct multiboot_header_tag_relocatable
+{
+  multiboot_uint16_t type;
+  multiboot_uint16_t flags;
+  multiboot_uint32_t size;
+  multiboot_uint32_t min_addr;
+  multiboot_uint32_t max_addr;
+  multiboot_uint32_t align;
+  multiboot_uint32_t preference;
+};
+
+struct multiboot_color
+{
+  multiboot_uint8_t red;
+  multiboot_uint8_t green;
+  multiboot_uint8_t blue;
+};
+
+struct multiboot_mmap_entry
+{
+  multiboot_uint64_t addr;
+  multiboot_uint64_t len;
+#define MULTIBOOT_MEMORY_AVAILABLE              1
+#define MULTIBOOT_MEMORY_RESERVED               2
+#define MULTIBOOT_MEMORY_ACPI_RECLAIMABLE       3
+#define MULTIBOOT_MEMORY_NVS                    4
+#define MULTIBOOT_MEMORY_BADRAM                 5
+  multiboot_uint32_t type;
+  multiboot_uint32_t zero;
+};
+typedef struct multiboot_mmap_entry multiboot_memory_map_t;
+
+struct multiboot_tag
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+};
+
+struct multiboot_tag_string
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  char string[0];
+};
+
+struct multiboot_tag_module
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t mod_start;
+  multiboot_uint32_t mod_end;
+  char cmdline[0];
+};
+
+struct multiboot_tag_basic_meminfo
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t mem_lower;
+  multiboot_uint32_t mem_upper;
+};
+
+struct multiboot_tag_bootdev
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t biosdev;
+  multiboot_uint32_t slice;
+  multiboot_uint32_t part;
+};
+
+struct multiboot_tag_mmap
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t entry_size;
+  multiboot_uint32_t entry_version;
+  struct multiboot_mmap_entry entries[0];  
+};
+
+struct multiboot_vbe_info_block
+{
+  multiboot_uint8_t external_specification[512];
+};
+
+struct multiboot_vbe_mode_info_block
+{
+  multiboot_uint8_t external_specification[256];
+};
+
+struct multiboot_tag_vbe
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+
+  multiboot_uint16_t vbe_mode;
+  multiboot_uint16_t vbe_interface_seg;
+  multiboot_uint16_t vbe_interface_off;
+  multiboot_uint16_t vbe_interface_len;
+
+  struct multiboot_vbe_info_block vbe_control_info;
+  struct multiboot_vbe_mode_info_block vbe_mode_info;
+};
+
+struct multiboot_tag_framebuffer_common
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+
+  multiboot_uint64_t framebuffer_addr;
+  multiboot_uint32_t framebuffer_pitch;
+  multiboot_uint32_t framebuffer_width;
+  multiboot_uint32_t framebuffer_height;
+  multiboot_uint8_t framebuffer_bpp;
+#define MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED 0
+#define MULTIBOOT_FRAMEBUFFER_TYPE_RGB     1
+#define MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT     2
+  multiboot_uint8_t framebuffer_type;
+  multiboot_uint16_t reserved;
+};
+
+struct multiboot_tag_framebuffer
+{
+  struct multiboot_tag_framebuffer_common common;
+
+  union
+  {
+    struct
+    {
+      multiboot_uint16_t framebuffer_palette_num_colors;
+      struct multiboot_color framebuffer_palette[0];
+    };
+    struct
+    {
+      multiboot_uint8_t framebuffer_red_field_position;
+      multiboot_uint8_t framebuffer_red_mask_size;
+      multiboot_uint8_t framebuffer_green_field_position;
+      multiboot_uint8_t framebuffer_green_mask_size;
+      multiboot_uint8_t framebuffer_blue_field_position;
+      multiboot_uint8_t framebuffer_blue_mask_size;
+    };
+  };
+};
+
+struct multiboot_tag_elf_sections
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t num;
+  multiboot_uint32_t entsize;
+  multiboot_uint32_t shndx;
+  char sections[0];
+};
+
+struct multiboot_tag_apm
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint16_t version;
+  multiboot_uint16_t cseg;
+  multiboot_uint32_t offset;
+  multiboot_uint16_t cseg_16;
+  multiboot_uint16_t dseg;
+  multiboot_uint16_t flags;
+  multiboot_uint16_t cseg_len;
+  multiboot_uint16_t cseg_16_len;
+  multiboot_uint16_t dseg_len;
+};
+
+struct multiboot_tag_efi32
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t pointer;
+};
+
+struct multiboot_tag_efi64
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint64_t pointer;
+};
+
+struct multiboot_tag_smbios
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint8_t major;
+  multiboot_uint8_t minor;
+  multiboot_uint8_t reserved[6];
+  multiboot_uint8_t tables[0];
+};
+
+struct multiboot_tag_old_acpi
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint8_t rsdp[0];
+};
+
+struct multiboot_tag_new_acpi
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint8_t rsdp[0];
+};
+
+struct multiboot_tag_network
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint8_t dhcpack[0];
+};
+
+struct multiboot_tag_efi_mmap
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t descr_size;
+  multiboot_uint32_t descr_vers;
+  multiboot_uint8_t efi_mmap[0];
+}; 
+
+struct multiboot_tag_efi32_ih
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t pointer;
+};
+
+struct multiboot_tag_efi64_ih
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint64_t pointer;
+};
+
+struct multiboot_tag_load_base_addr
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+  multiboot_uint32_t load_base_addr;
+};
+
+#endif /*  ! ASM_FILE */
+
+#endif /*  ! MULTIBOOT_HEADER */
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{multiboot2.asm}}
+\label{lst:multiboot2_asm}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{nasm}
+extern main
+global _start
+global gdt_flush  ; makes gdt_flush visible to C code
+global idt_flush  ; makes idt_flush visible to C code
+
+section .multiboot_header
+header_start:
+    dd 0xe85250d6 	                                                ; Magic number (multiboot 2)
+    dd 0				                                            ; Architecture 0 (protected mode i386)
+    dd header_end - header_start 	                                ; Header length
+    dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header_start)) ; Checksum
+
+;align 8
+;framebuffer_tag_start:
+;    dw 5                                              ; type
+;    dw 1                                              ; flags
+;    dd framebuffer_tag_end - framebuffer_tag_start    ; size
+;    dd 800                                            ; width
+;    dd 600                                            ; height
+;    dd 32                                             ; depth
+;framebuffer_tag_end:
+
+align 8
+    ; Required end tag:
+    dw 0	; type
+    dw 0	; flags
+    dw 8	; size
+header_end:
+
+section .text
+bits 32
+
+_start:
+    cli
+
+    mov esp, stack_top
+
+	push ebx
+	push eax
+
+    call main ; Jump main function
+
+; hlt loop to avoid the Operating System immediately exiting
+.hang: 
+    hlt ; hlt instruction makes CPU wait for an interrupt before continuing
+    jmp .hang
+
+; Function is called from C with (uint32_t)&gdt_pointer as argument
+gdt_flush:
+	mov eax, [esp+4] ; Moves the GDT pointer from the stack to eax register
+					; esp+4 is used to go past the return memory address 
+					; pushed onto the stack and [] dereferences the 
+					; value at that memory address
+ 
+	lgdt [eax] ; Loads the GDT pointer into the CPU.
+
+	mov ax, 0x10 ; Datasegment is at the GDT entry 0x10, and is loaded into the ax register
+	mov ds, ax ; loads the address of the data segment GDT entry into all segment registers.
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+	jmp 0x08:.flush ; Uses a jmp instruction to change the code segment to GDT entry 0x08,
+					; .flush immediately returns.
+.flush:
+	ret
+
+
+; idt_flush(uint32_t idt_ptr_address)
+; Called from C with the address of our idt_ptr_t struct.
+; The lidt instruction reads limit+base from that address and loads the IDT.
+idt_flush:
+    mov eax, [esp+4]   ; first argument: address of our idt_ptr_t
+    lidt [eax]         ; load the IDT (same idea as lgdt for the GDT)
+    ret
+
+section .bss
+stack_bottom:
+    resb 4096 * 16
+stack_top:
+
+\end{minted}
+
+
+\subsection{GDT}
+\label{apx:gdt}
+
+
+\captionof{listing}{Implementation of \texttt{gdt.h}}
+\label{lst:gdt_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef GDT_H
+#define GDT_H
+
+#include "libc/stdint.h"
+
+// Defines the functions and structs used for initialising a GDT in our
+// operating system.
+
+// One entry in the GDT (8 bytes).
+//
+// The variables defined in the GDT table might be spread, therefore you will
+// see a high and low section for the variables limit and base.
+typedef struct gdt_entry {
+  uint16_t limit_low;  // Limit is the size of the corresponding segment
+  uint16_t base_low;   // Base is the starting memory address of the segment.
+  uint8_t base_middle; //
+  uint8_t access;      // Access byte, hold permissions settings, such as DPL
+  uint8_t limit_and_flags; // Upper 4 bits: flags , Lower 4 bits: limit
+  uint8_t base_high;
+} __attribute__((
+    packed)) gdt_entry_t; // packed ensures compiler does not alter the
+                          // memory layout of the gdt_entry struct.
+
+// The GDT pointer, this is loaded with the lgdt assembly instruction.
+typedef struct {
+  uint16_t limit; // Size of GDT in bytes, subtracted by 1
+  uint32_t base;  // Memory address to the start of the GDT
+} __attribute__((packed)) gdt_ptr_t;
+
+// See the gdt.c file for more information.
+void gdt_init(void);
+
+// Function defined in the multiboot assembly file which loads the
+// GDT pointer
+extern void gdt_flush(uint32_t gdt_ptr_address);
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{gdt.c}}
+\label{lst:gdt_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/gdt.h"
+
+// Defines GDT array and pointer to the array
+static gdt_entry_t gdt[3];
+static gdt_ptr_t gdt_pointer;
+
+// Helper function to populate global descriptor table, since the memory layout
+// is akward due to historical reasons.
+static void gdt_set_entry(int index, uint32_t base, uint32_t limit,
+                          uint8_t access, uint8_t flags) {
+  gdt[index].limit_low = limit & 0xFFFF;
+  gdt[index].base_low = base & 0xFFFF;
+  gdt[index].base_middle = (base >> 16) & 0xFF;
+  gdt[index].access = access;
+  gdt[index].limit_and_flags = (flags << 4) | ((limit >> 16) & 0x0F);
+  gdt[index].base_high = (base >> 24) & 0xFF;
+}
+
+// Initialises up the global descriptor table and then loads it into the CPU
+void gdt_init(void) {
+  // The first GDT entry should always be null
+  gdt_set_entry(0, 0, 0, 0, 0);
+
+  // Defines a code segment with access to the entire memory range.
+  // access 0x9A,
+  // What each bit in the access byte defines can be found in
+  // https://wiki.osdev.org/Global_Descriptor_Table
+  //
+  // The access byte represents the following:
+  // Bit 7 present bit = 1, the segment is valid.
+  // Bits 6-5 DPL = 00, sets segment to highest privilege.
+  // Bit 4 descriptor type = 1, defines a code or datasegment
+  // Bit 3 Executable bit = 1 for a code segment.
+  // Bit 2 Conforming bit = 0, Code in the segment can only be exectued from the
+  // same DPL level.
+  // Bit 1 Read = 1, The segment is readable.
+  // Bit 0 Accessed bit = 0. The CPU will set this when it uses the segment.
+  //
+  // flags 0xC
+  // Bit 3 = 1 Page granularity, instead of byte granularity.
+  // Bit 2 = 1, defines a 32-bit protected mode segment
+  // Bit 1 = 0, means the segment is NOT a 64 bit code segment
+  // Bit 0 reserved bit,
+  // The flags represent:
+  gdt_set_entry(1, 0, 0xFFFFF, 0x9A, 0xC);
+
+  // Defines a data segment with access to the entire memory range.
+  // access 0x92,
+  // The access byte represents the following:
+  // Bit 7 present bit = 1, the segment is valid.
+  // Bits 6-5 DPL = 00, sets segment to highest privilege.
+  // Bit 4 descriptor type = 1, defines a code or datasegment
+  // Bit 3 Executable bit = 0 for a data segment.
+  // Bit 2 Conforming bit = 0, Code in the segment can only be exectued from the
+  // same DPL level.
+  // Bit 1 Write = 1, The segment is writable
+  // Bit 0  Accessed bit = 0. The CPU will set this when it uses the segment.
+  //
+  // flags 0xC
+  // Same flags as previous entry
+  gdt_set_entry(2, 0, 0xFFFFF, 0x92, 0xC);
+
+  // Defines the limit and base of our gdt pointer
+  gdt_pointer.limit = sizeof(gdt) - 1;
+  gdt_pointer.base = (uint32_t)&gdt;
+
+  // Defined in the multiboot2.asm file
+  gdt_flush((uint32_t)&gdt_pointer);
+}
+
+\end{minted}
+
+
+\subsection{Kernel Entry}
+\label{apx:kernel_entry}
+
+
+\captionof{listing}{Implementation of \texttt{kernel.c}}
+\label{lst:kernel_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../include/gdt.h"
+#include "../include/idt.h"
+#include "../include/irq.h"
+#include "../include/isr.h"
+#include "../include/kernel/memory.h"
+#include "../include/kernel/pit.h"
+#include "../include/keyboard.h"
+#include "../include/libc/stdbool.h"
+#include "../include/libc/stddef.h"
+#include "../include/libc/stdint.h"
+#include "../include/libc/stdio.h"
+#include "../include/matrix.h"
+#include "../include/menu.h"
+#include "../include/multiboot2.h"
+#include "../include/piano.h"
+#include "../include/program.h"
+#include "lib/song/song.h"
+
+extern uint32_t end; // The memory address of where the kernel ends
+
+int kernel_main();
+
+int main(uint32_t magic, struct multiboot_info *mb_info_addr) {
+  // Requirements from assignment 2
+  gdt_init();
+  // Requirements from assignment 3
+  idt_init();
+  isr_init();
+  irq_init();
+  keyboard_init();
+  // Requirements from assignment 4
+  init_kernel_memory(&end);
+  init_paging();
+  print_memory_layout();
+  init_pit();
+
+  // Enable interrupts after we disabled them in _start in multiboot2.h
+  asm volatile("sti");
+
+  int reload = 250;
+  int counter = reload;
+
+  printf("Hello World!\\n");
+  printf("Memory information printed above. To display the menu press: %d \\n",
+         PROGRAM_MENU);
+  // Main kernel loop
+  while (true) {
+    int entry = kb_dequeue(&kb);
+    if (entry != -1) {
+      keyboard_handler(entry);
+    }
+    if (active_program == PROGRAM_PIANO && piano_played_key) {
+      // Uses a counter and reload value to make the matrix
+      // update happen less frequently.
+      if (--counter == 0) {
+        counter = reload;
+        matrix_rain_frame();
+      }
+    }
+    sleep_interrupt(1);
+  }
+
+  return kernel_main();
+}
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{kernel.cpp}}
+\label{lst:kernel_cpp}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{cpp}
+#include "../include/libc/stddef.h" for size_t
+#include "../include/libc/stdint.h" for size_t
+
+// Malloc and free from the given C implementation
+extern "C" void *malloc(size_t size);
+extern "C" void free(void *ptr);
+
+//  C++ new and delete operator use our malloc and free
+void *operator new(size_t size) { return malloc(size); }
+void *operator new[](size_t size) { return malloc(size); }
+void operator delete(void *ptr) noexcept { free(ptr); }
+void operator delete[](void *ptr) noexcept { free(ptr); }
+
+extern "C" int kernel_main(void);
+int kernel_main() { return 0; }
+
+\end{minted}
+
+
+\section{Assignment 3 - Interrupts and I/O}
+\label{apx:assignment_3___interrupts_and_i_o}
+
+
+\subsection{IO Port Helpers}
+\label{apx:io_port_helpers}
+
+
+\captionof{listing}{Implementation of \texttt{io.h}}
+\label{lst:io_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#pragma once
+
+#include "libc/stdint.h"
+
+// Write a byte to an I/O port
+static inline void outb(uint16_t port, uint8_t value) {
+  asm volatile("out %1, %0" : : "dN"(port), "a"(value));
+}
+
+// Read a byte from an I/O port
+static inline uint8_t inb(uint16_t port) {
+  uint8_t ret;
+  asm volatile("in %1, %0" : "=a"(ret) : "dN"(port));
+  return ret;
+}
+
+\end{minted}
+
+
+\subsection{IDT}
+\label{apx:idt}
+
+
+\captionof{listing}{Implementation of \texttt{idt.h}}
+\label{lst:idt_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef IDT_H
+#define IDT_H
+
+#include "libc/stdint.h"
+
+// Struct defines an entry in the interrupt description table IDT
+typedef struct {
+  uint16_t offset_low; // Offset is the addres of the interrupt service routine
+                       // relative to its segment.
+  uint16_t selector;   // Selector is the GDT entry where the ISR resides.
+                     // In our system the code segment lives at 0x08 in the GDT
+  uint8_t zero;      // Reserved bit always zero
+  uint8_t type_attr; // Gate type + DPL + present bit
+                     // bit 7 present bit = 1, entry is valid
+                     // bits 6-5 DPL = 00, highest privelege level
+  // bit 4  = 0, unused value for gate typer other than Task
+  // gate.
+  // bits 3-0 gate type, = 1110, 32 bit interrupt type.
+  uint16_t offset_high;
+} __attribute__((packed)) idt_entry_t;
+
+// The IDT pointer, this is loaded with the lidt assembly instruction.
+typedef struct {
+  uint16_t limit; // Size of the IDT in bytes, subtracted by 1
+  uint32_t base;  // Memory address to the start of the IDT
+} __attribute__((packed)) idt_ptr_t;
+
+// See the idt.c file for more information.
+void idt_set_entry(uint8_t index, uint32_t handler, uint16_t selector,
+                   uint8_t type_attr);
+
+// See the idt.c file for more information.
+void idt_init(void);
+
+// Defined in the multiboot2.asm assembly file. Loads the IDT pointer into the
+// CPU registers.
+extern void idt_flush(uint32_t idt_ptr_address);
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{idt.c}}
+\label{lst:idt_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/idt.h"
+
+static idt_entry_t idt[256];
+static idt_ptr_t idt_pointer;
+
+// Helper function to populate interrupt descriptor table, since the memory
+// layout is awkward due to historical reasons.
+void idt_set_entry(uint8_t index, uint32_t handler, uint16_t selector,
+                   uint8_t type_attr) {
+  idt[index].offset_low = handler & 0xFFFF;
+  idt[index].selector = selector;
+  idt[index].zero = 0;
+  idt[index].type_attr = type_attr;
+  idt[index].offset_high = (handler >> 16) & 0xFFFF;
+}
+
+extern int32_t dummy_isr;
+
+// Initialises up the interrupt descriptor table and then loads it into the CPU
+// registers.
+void idt_init(void) {
+  idt_pointer.limit = sizeof(idt) - 1;
+  idt_pointer.base = (uint32_t)&idt;
+
+  // Creates an IDT entry for each of the 256 possible entries.
+  for (int i = 0; i < 256; i++) {
+    // Initialises all IDT entries with dummy ISR that immediatly returns.
+    // 0x08 selector which is our code segment.
+    // 0x8E 32 bit interrupt gate.
+    idt_set_entry(i, dummy_isr, 0x08, 0x8E);
+  }
+
+  idt_flush((uint32_t)&idt_pointer);
+}
+
+\end{minted}
+
+
+\subsection{ISR}
+\label{apx:isr}
+
+
+\captionof{listing}{Implementation of \texttt{isr.h}}
+\label{lst:isr_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef ISR_H
+#define ISR_H
+
+#include "libc/stdint.h"
+
+// Snapshot of all registers at the moment an interrupt fires.
+// The layout must match exactly what isr_common_stub pushes onto the stack.
+typedef struct {
+  uint32_t ds; // The currently used datasegment
+  uint32_t edi, esi, ebp, esp, ebx, edx, ecx,
+      eax; // the following variables are pushed onto the stack by the `pusha`
+           // asm instruction
+  uint32_t int_no, err_code; // these variabels are pushed before our ISR stub
+                             // in the isr.asm file
+  uint32_t eip, cs, eflags, useresp,
+      ss; // CPU automatically pushes these variables upon interrupt
+} registers_t;
+
+// Inserts ISR entries into the IDT
+void isr_init(void);
+
+// Called by isr_common_stub. Currently only prints interrupt number.
+void isr_handler(registers_t *regs);
+
+// Makes entrypoints to various interrupt service routines defined in the
+// isr.asm file available in C.
+extern void isr0(void); // Division By Zero
+extern void isr1(void); // Debug
+extern void isr2(void); // Non-Maskable Interrupt
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{isr.asm}}
+\label{lst:isr_asm}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{nasm}
+extern isr_handler  ; the C function we call from the common stub
+
+global dummy_isr
+global isr0
+global isr1
+global isr2
+
+; ISR that immediatly returns; used to initialise all IDT entries.
+dummy_isr: 
+	iretd
+; ISR 0, Division By Zero, the CPU does not automatically push an error code.
+isr0:
+    cli
+    push dword 0   ; dummy error code
+    push dword 0   ; interrupt number
+    jmp isr_common_stub
+
+; ISR 1, Debug, the CPU does not automatically push an error code.
+isr1:
+    cli
+    push dword 0   ; dummy error code
+    push dword 1   ; interrupt number
+    jmp isr_common_stub
+
+; ISR 2, Non-Maskable Interrupt, Debug, the CPU does not automatically push an error code.
+isr2:
+    cli
+    push dword 0   ; dummy error code
+    push dword 2   ; interrupt number
+    jmp isr_common_stub
+
+
+; Stub used by alL ISR. Handles pushing CPU registers and datasegment in accordance with the struct registers_t defined in isr.h
+; Then handles calling the isr_handler with registers_t argument, then restores the CPU state.
+isr_common_stub:
+    pusha               ; push eax, ecx, edx, ebx, esp, ebp, esi, edi
+
+	; NOTE: currently our operating system only has a single datasegment, but to
+	; allow for compatability with user space in the future we save the current datasegment, load the
+	; kernel datasegment, and restore the datasegment after the ISR handle finishes.
+    mov ax, ds          ; save the current data segment
+    push eax            ; pushes the extended ax register to ensure 32 bit alignment
+
+    mov ax, 0x10        ; load the kernel data segment into every segment register
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp            ; Pushes the pointer to the top of the stack to the stack. which represents the register_t struct used by the isr_handler.
+    call isr_handler    ; Call the C handler.
+    add esp, 4          ; Moves the stack pointer forward with 4 bytes moving past the stack pointer we pushed to the stack.
+
+    pop eax             ; Pops the data segment back off the stack. And restores it back into all segment registers
+    mov ds, ax           
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    popa                ; Restores the general purpose registers pushed onto the stack by `pusha`.
+    add esp, 8          ; Move the stack pointer 8 bytes forward to discard the interrupt number and error code we pushed onto the stack. 
+    sti
+    iret                ; Return from interrupt, handles popping of the elements which the CPU automatically pushed to the stack upon interrupt.
+
+
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{isr.c}}
+\label{lst:isr_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/isr.h"
+#include "../../include/idt.h"
+#include "../../include/libc/stdint.h"
+#include "../../include/libc/stdio.h"
+
+// Names for the first 3 CPU exceptions we handle
+static const char *exception_messages[] = {
+    "Division By Zero",      // ISR 0
+    "Debug",                 // ISR 1
+    "Non-Maskable Interrupt" // ISR 2
+};
+
+// Insert the three ISR stubs into the IDT.
+// 0x08     = code segment selector, entry 1 in GDT
+// 0x8E     = 32-bit interrupt gate, kernel level privelege , present. See the
+// idt_entry_t struct in idt.h for more info.
+void isr_init(void) {
+  idt_set_entry(0, (uint32_t)isr0, 0x08, 0x8E);
+  idt_set_entry(1, (uint32_t)isr1, 0x08, 0x8E);
+  idt_set_entry(2, (uint32_t)isr2, 0x08, 0x8E);
+}
+
+// Called from isr_common_stub with a pointer to the saved register state.
+void isr_handler(registers_t *regs) {
+  printf("ISR fired: interrupt %d: %s\\n", regs->int_no,
+         exception_messages[regs->int_no]);
+}
+
+\end{minted}
+
+
+\subsection{IRQ}
+\label{apx:irq}
+
+
+\captionof{listing}{Implementation of \texttt{irq.h}}
+\label{lst:irq_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef IRQ_H
+
+// for in-depth explanations of the following variables look to
+// https://wiki.osdev.org/8259_PIC
+#define IRQ_H
+#define PIC1 0x20            // address to the master PIC
+#define PIC2 0xA0            // address to the slave PIC
+#define PIC1_COMMAND PIC1    // address to the MASTER PIC command port
+#define PIC1_DATA (PIC1 + 1) // address to the MASTER PIC data port
+#define PIC2_COMMAND PIC2    // address to the SLAVE PIC command port
+#define PIC2_DATA (PIC2 + 1) // address to the SLAVE PIC DATA port
+
+#define ICW1_INIT 0x10 // Initialization sent to command port on startup
+#define ICW1_ICW4                                                              \\
+  0x01 // Used on command port indicates that ICW4 will be present
+
+#define ICW4_8086 0x01 // 8086 CPU mode
+#define CASCADE_IRQ 2
+
+#include "isr.h" // reuse registers_t
+
+// More info in the irq.c file
+void irq_init(void);
+
+// More info in the irq.c file
+void irq_handler(registers_t *regs);
+
+// More info in the irq.c file
+void irq_register_handler(int irq, void (*handler)(registers_t *));
+
+// Makes entrypoints to various interrupt request defined in the irq.asm file
+// available in C.
+extern void irq0(void);
+extern void irq1(void);
+extern void irq2(void);
+extern void irq3(void);
+extern void irq4(void);
+extern void irq5(void);
+extern void irq6(void);
+extern void irq7(void);
+extern void irq8(void);
+extern void irq9(void);
+extern void irq10(void);
+extern void irq11(void);
+extern void irq12(void);
+extern void irq13(void);
+extern void irq14(void);
+extern void irq15(void);
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{irq.asm}}
+\label{lst:irq_asm}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{nasm}
+extern irq_handler ; C function that handles IRQ
+
+global irq0 ; Defines entrypoints to the different IRQs
+global irq1
+global irq2
+global irq3
+global irq4
+global irq5
+global irq6
+global irq7
+global irq8
+global irq9
+global irq10
+global irq11
+global irq12
+global irq13
+global irq14
+global irq15
+
+; Stub used by alL IRQ. Handles pushing CPU registers and datasegment in accordance with the struct registers_t defined in isr.h
+; Then handles calling the isr_handler with registers_t argument, then restores the CPU state.
+irq0:  cli
+    push dword 0
+    push dword 32
+    jmp irq_common_stub
+
+irq1:  cli
+    push dword 0
+    push dword 33
+    jmp irq_common_stub
+
+irq2:  cli
+    push dword 0
+    push dword 34
+    jmp irq_common_stub
+
+irq3:  cli
+    push dword 0
+    push dword 35
+    jmp irq_common_stub
+
+irq4:  cli
+    push dword 0
+    push dword 36
+    jmp irq_common_stub
+
+irq5:  cli
+    push dword 0
+    push dword 37
+    jmp irq_common_stub
+
+irq6:  cli
+    push dword 0
+    push dword 38
+    jmp irq_common_stub
+
+irq7:  cli
+    push dword 0
+    push dword 39
+    jmp irq_common_stub
+
+irq8:  cli
+    push dword 0
+    push dword 40
+    jmp irq_common_stub
+
+irq9:  cli
+    push dword 0
+    push dword 41
+    jmp irq_common_stub
+
+irq10: cli
+    push dword 0
+    push dword 42
+    jmp irq_common_stub
+
+irq11: cli
+    push dword 0
+    push dword 43
+    jmp irq_common_stub
+
+irq12: cli
+    push dword 0
+    push dword 44
+    jmp irq_common_stub
+
+irq13: cli
+    push dword 0
+    push dword 45
+    jmp irq_common_stub
+
+irq14: cli
+    push dword 0
+    push dword 46
+    jmp irq_common_stub
+
+irq15: cli
+    push dword 0
+    push dword 47
+    jmp irq_common_stub
+
+; See isr_common_stub in isr.asm for comments as this stub follows the exact same principles the only difference being calling irq_handler instead of isr_handler
+irq_common_stub:
+    pusha
+
+    mov ax, ds
+    push eax
+
+    mov ax, 0x10        ; kernel data segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp            ; pointer to registers_t
+    call irq_handler
+    add esp, 4
+
+    pop eax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    popa
+    add esp, 8          ; remove int_no and err_code
+    sti
+    iret
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{irq.c}}
+\label{lst:irq_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/irq.h"
+#include "../../include/idt.h"
+#include "../../include/io.h"
+
+// PIC remapping
+// The PIC has a has 16 irq lines spread over two chips, a master chip and a
+// slave chip. Each of them have a port to send data to and commands to.
+static void pic_remap(void) {
+  outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4); // ICW1: init master PIC
+  outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4); // ICW1: init slave PIC
+
+  outb(PIC1_DATA,
+       0x20); // ICW2: master offsets IRQ 0-7 by 32 bits to interrupts 32-39
+  outb(PIC2_COMMAND,
+       0x28); // ICW2: slave offsets  IRQ 8-15 by 40 bytes to interrupts 40-47
+
+  outb(PIC1_DATA, 1 << CASCADE_IRQ); // ICW3: Bit mask tells master there is
+                                     // exactly one slave on irq line 2
+  outb(PIC2_DATA, CASCADE_IRQ); // ICW3: Tells slave which irq line it is on in
+                                // relation to the master.
+
+  outb(PIC1_DATA, ICW4_8086); // ICW4: 8086 mode on master
+  outb(PIC2_DATA, ICW4_8086); // ICW4: 8086 mode on slave
+
+  outb(PIC1_DATA, 0); // unmask all interrupts on master
+  outb(PIC2_DATA, 0); // unmask all interrupts on slave
+}
+
+// Initialise interrupt requests.
+void irq_init(void) {
+  pic_remap();
+
+  // Inserts the 16 stubs into IDT.
+  // Code segment: 0x08
+  // 0x8E Present,Kernel level privelege, interrupt gate.
+  idt_set_entry(32, (uint32_t)irq0, 0x08, 0x8E);
+  idt_set_entry(33, (uint32_t)irq1, 0x08, 0x8E);
+  idt_set_entry(34, (uint32_t)irq2, 0x08, 0x8E);
+  idt_set_entry(35, (uint32_t)irq3, 0x08, 0x8E);
+  idt_set_entry(36, (uint32_t)irq4, 0x08, 0x8E);
+  idt_set_entry(37, (uint32_t)irq5, 0x08, 0x8E);
+  idt_set_entry(38, (uint32_t)irq6, 0x08, 0x8E);
+  idt_set_entry(39, (uint32_t)irq7, 0x08, 0x8E);
+  idt_set_entry(40, (uint32_t)irq8, 0x08, 0x8E);
+  idt_set_entry(41, (uint32_t)irq9, 0x08, 0x8E);
+  idt_set_entry(42, (uint32_t)irq10, 0x08, 0x8E);
+  idt_set_entry(43, (uint32_t)irq11, 0x08, 0x8E);
+  idt_set_entry(44, (uint32_t)irq12, 0x08, 0x8E);
+  idt_set_entry(45, (uint32_t)irq13, 0x08, 0x8E);
+  idt_set_entry(46, (uint32_t)irq14, 0x08, 0x8E);
+  idt_set_entry(47, (uint32_t)irq15, 0x08, 0x8E);
+}
+
+// IRQ handler table
+static void (*irq_handlers[16])(registers_t *) = {0};
+// Function which adds IRQ handlers to the IRQ handler table
+void irq_register_handler(int irq, void (*handler)(registers_t *)) {
+  irq_handlers[irq] = handler;
+}
+
+// IRQ handler
+void irq_handler(registers_t *regs) {
+  int irq = regs->int_no - 32;
+
+  if (irq_handlers[irq]) {
+    irq_handlers[irq](regs);
+  }
+  // IRQ 0-7 are mapped to the master PIC. And IRQ 8-15 are mapped to the slave
+  // PIC. Since we have shifted all interrupts up by 32 entries, that means that
+  // the the slave PIC uses interrupt numbers starting from 40. Therefore we
+  // must send EOI to both the slave and master PIC when the interrupt number is
+  // larger or equal to 40.
+  if (regs->int_no >= 40) {
+    outb(PIC2_COMMAND, 0x20); // Send EOI to the slave PIC
+  }
+  outb(PIC1_COMMAND, 0x20); // Send EOI to the master PIC
+}
+
+\end{minted}
+
+
+\subsection{Keyboard}
+\label{apx:keyboard}
+
+
+\captionof{listing}{Implementation of \texttt{keyboard.h}}
+\label{lst:keyboard_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
+
+#include "../include/libc/stdint.h"
+#define KEYBOARD_DATA_PORT 0x60
+#define KEYBOARD_BUFFER_SIZE 128
+
+// Stores keyboard scancodes in circular queue to be processed by the main
+// kernel loop.
+typedef struct {
+  int buffer[KEYBOARD_BUFFER_SIZE];
+  int front;
+  int back;
+} KeyboardBuffer;
+
+extern KeyboardBuffer kb;
+extern const char scancode_ascii[128];
+
+void kb_enqueue(KeyboardBuffer *kb, int entry);
+int kb_dequeue(KeyboardBuffer *kb);
+void keyboard_init(void);
+
+int get_key(int scancode);
+void keyboard_handler(int scancode);
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{keyboard.c}}
+\label{lst:keyboard_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/keyboard.h"
+#include "../../include/fedrelandet.h"
+#include "../../include/io.h"
+#include "../../include/irq.h"
+#include "../../include/libc/stdint.h"
+#include "../../include/libc/stdio.h"
+#include "../../include/menu.h"
+#include "../../include/piano.h"
+#include "../../include/program.h"
+#include "../../include/radio.h"
+#include "../../include/shell.h"
+#include "song/song.h"
+
+// Maps scancode to character. keyboard Layout: US QWERTY
+const char scancode_ascii[128] = {
+    0,   0,    '1',  '2', '3',  '4', '5', '6', '7', '8', '9', '0', '-',
+    '=', '\\b', '\\t', 'q', 'w',  'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
+    '[', ']',  '\\n', 0,   'a',  's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
+    ';', '\\'', '`',  0,   '\\\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',',
+    '.', '/',  0,    '*', 0,    ' ', 0,   0,   0,   0,   0,   0,   0,
+    0,   0,    0,    0,   0,    0,   '7', '8', '9', '-', '4', '5', '6',
+    '+', '1',  '2',  '3', '0',  '.', 0,   0,   0,   0,   0,   0,   0,
+    0,   0,    0,    0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,    0,    0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,    0,    0,   0,    0,   0,   0,   0,   0,   0,
+};
+
+// Function to add element to circular queue.
+void kb_enqueue(KeyboardBuffer *kb, int entry) {
+  kb->buffer[kb->front] = entry;
+  kb->front = (kb->front + 1) % KEYBOARD_BUFFER_SIZE;
+}
+// Function to retrieve element to circular queue.
+int kb_dequeue(KeyboardBuffer *kb) {
+  if (kb->front == kb->back) {
+    return -1;
+  }
+  int entry = kb->buffer[kb->back];
+  kb->back = (kb->back + 1) % KEYBOARD_BUFFER_SIZE;
+  return entry;
+}
+
+KeyboardBuffer kb = {0};
+
+// Gets keyboard key, returning -1 on key release.
+int get_key(int scancode) {
+  if (scancode & 0x80)
+    return -1;
+  return scancode_ascii[scancode];
+}
+
+// Routes scancode to appropriate handler based on current active program.
+void keyboard_handler(int scancode) {
+
+  switch (active_program) {
+  case PROGRAM_SHELL:
+    shell_keyboard_handler(scancode);
+    break;
+  case PROGRAM_PIANO:
+    piano_keyboard_handler(scancode);
+    break;
+  case PROGRAM_RADIO:
+    radio_keyboard_handler(scancode);
+    break;
+  case PROGRAM_MENU:
+    menu_keyboard_handler(scancode);
+    break;
+  case PROGRAM_FEDRELANDET:
+    fedrelandet_keyboard_handler(scancode);
+    break;
+  default:
+    printf("unknown program: %d\\n", active_program);
+    break;
+  }
+}
+
+static int ctrl_held = 0;
+// handler for IRQ1 (keyboard)
+static void keyboard_irq_handler(registers_t *regs) {
+  (void)regs;
+
+  uint8_t scancode =
+      inb(KEYBOARD_DATA_PORT); // Read scancode from keyboard data port
+                               //
+
+  // set modifier key state
+  if (scancode == 0x1D) {
+    ctrl_held = 1;
+    return;
+  }
+  if (scancode == 0x9D) {
+    ctrl_held = 0;
+    return;
+  }
+
+  // If 'q' is pressed set program to menu (quits current program)
+  if (scancode == 0x10 && ctrl_held) {
+    active_program = PROGRAM_MENU;
+    disable_speaker();
+    clearTerminal();
+    print_menu();
+    return;
+  }
+
+  // queues keyboard scancode to ring buffer
+  kb_enqueue(&kb, scancode);
+}
+
+// Maps IRQ 1 to the pointer of the keyboard handler function.
+void keyboard_init(void) { irq_register_handler(1, keyboard_irq_handler); }
+
+\end{minted}
+
+
+\section{Assignment 4 - Memory and Timing}
+\label{apx:assignment_4___memory_and_timing}
+
+
+\subsection{Memory}
+\label{apx:memory}
+
+
+\captionof{listing}{Implementation of \texttt{memory.h}}
+\label{lst:memory_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+/*
+ * This is a header file for a simple memory management library.
+ * It includes declarations for functions related to memory allocation,
+ * paging and memory manipulation (copying and setting).
+ */
+
+#ifndef MEMORY_H
+#define MEMORY_H
+
+#include "../libc/stddef.h" /* Include standard definitions */
+#include "../libc/stdint.h" * Include standard integer types * /
+
+/*
+ * Definition of a struct that represents a memory allocation.
+ * It contains a status field (0 or 1) indicating if the memory
+ * is currently allocated or not, and a size field indicating
+ * the size of the allocated memory in bytes.
+ */
+typedef struct {
+  uint8_t status;
+  uint32_t size;
+} alloc_t;
+
+/* Init Kernel Memory */
+void init_kernel_memory(uint32_t *kernel_end);
+
+/* Function declarations for paging operations */
+extern void init_paging(); /* Initializes paging */
+extern void paging_map_virtual_to_phys(
+    uint32_t virt,
+    uint32_t phys); /* Maps a virtual address to a physical address */
+
+/* Function declarations for memory allocation */
+extern char *
+pmalloc(size_t size); /* Allocates memory of given size with page alignment */
+extern void *malloc(size_t size); /* Allocates memory of given size */
+extern void free(void *mem);      /* Frees memory previously allocated */
+
+/* Function declarations for memory manipulation */
+extern void *memcpy(void *dest, const void *src,
+                    size_t num); /* Copies num bytes from src to dest */
+extern void *memset(void *ptr, int value,
+                    size_t num); /* Sets num bytes starting from ptr to value */
+extern void *
+memset16(void *ptr, uint16_t value,
+         size_t num); /* Sets num bytes starting from ptr to a 16-bit value */
+
+/* Other helper functions*/
+void print_memory_layout();
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{malloc.c}}
+\label{lst:malloc_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../../include/kernel/memory.h"
+#include "../../../include/libc/system.h"
+
+#define MAX_PAGE_ALIGNED_ALLOCS 32
+
+uint32_t last_alloc = 0;
+uint32_t heap_end = 0;
+uint32_t heap_begin = 0;
+uint32_t pheap_begin = 0;
+uint32_t pheap_end = 0;
+uint8_t *pheap_desc = 0;
+uint32_t memory_used = 0;
+
+// Initialize the kernel memory manager
+void init_kernel_memory(uint32_t* kernel_end)
+{
+    last_alloc = kernel_end + 0x1000;
+    heap_begin = last_alloc;
+    pheap_end = 0x400000;
+    pheap_begin = pheap_end - (MAX_PAGE_ALIGNED_ALLOCS * 4096);
+    heap_end = pheap_begin;
+    memset((char *)heap_begin, 0, heap_end - heap_begin);
+    pheap_desc = (uint8_t *)malloc(MAX_PAGE_ALIGNED_ALLOCS);
+    printf("Kernel heap starts at 0x%x\\n", last_alloc);
+}
+
+// Print the current memory layout
+void print_memory_layout()
+{
+    printf("Memory used: %d bytes\\n", memory_used);
+    printf("Memory free: %d bytes\\n", heap_end - heap_begin - memory_used);
+    printf("Heap size: %d bytes\\n", heap_end - heap_begin);
+    printf("Heap start: 0x%x\\n", heap_begin);
+    printf("Heap end: 0x%x\\n", heap_end);
+    printf("PHeap start: 0x%x\\nPHeap end: 0x%x\\n", pheap_begin, pheap_end);
+}
+
+// Free a block of memory
+void free(void *mem)
+{
+    alloc_t *alloc = (mem - sizeof(alloc_t));
+    memory_used -= alloc->size + sizeof(alloc_t);
+    alloc->status = 0;
+}
+
+// Free a block of page-aligned memory
+void pfree(void *mem)
+{
+    if(mem < pheap_begin || mem > pheap_end) return;
+
+    // Determine the page ID
+    uint32_t ad = (uint32_t)mem;
+    ad -= pheap_begin;
+    ad /= 4096;
+
+    // Set the page descriptor to free
+    pheap_desc[ad] = 0;
+}
+
+// Allocate a block of page-aligned memory
+char* pmalloc(size_t size)
+{
+    // Loop through the available list
+    for(int i = 0; i < MAX_PAGE_ALIGNED_ALLOCS; i++)
+    {
+        if(pheap_desc[i]) continue;
+        pheap_desc[i] = 1;
+        printf("PAllocated from 0x%x to 0x%x\\n", pheap_begin + i*4096, pheap_begin + (i+1)*4096);
+        return (char *)(pheap_begin + i*4096);
+    }
+    printf("pmalloc: FATAL: failure!\\n");
+    return 0;
+}
+
+
+// Allocate a block of memory
+void* malloc(size_t size)
+{
+    if(!size) return 0;
+
+    // Loop through blocks to find an available block with enough size
+    uint8_t *mem = (uint8_t *)heap_begin;
+    while((uint32_t)mem < last_alloc)
+    {
+        alloc_t *a = (alloc_t *)mem;
+        printf("mem=0x%x a={.status=%d, .size=%d}\\n", mem, a->status, a->size);
+
+        if(!a->size)
+            goto nalloc;
+        if(a->status) {
+            mem += a->size;
+            mem += sizeof(alloc_t);
+            mem += 4;
+            continue;
+        }
+        // If the block is not allocated and its size is big enough,
+        // adjust its size, set the status, and return the location.
+        if(a->size >= size)
+        {
+            a->status = 1;
+            printf("RE:Allocated %d bytes from 0x%x to 0x%x\\n", size, mem + sizeof(alloc_t), mem + sizeof(alloc_t) + size);
+            memset(mem + sizeof(alloc_t), 0, size);
+            memory_used += size + sizeof(alloc_t);
+            return (char *)(mem + sizeof(alloc_t));
+        }
+        // If the block is not allocated and its size is not big enough,
+        // add its size and the sizeof(alloc_t) to the pointer and continue.
+        mem += a->size;
+        mem += sizeof(alloc_t);
+        mem += 4;
+    }
+
+    nalloc:;
+    if(last_alloc + size + sizeof(alloc_t) >= heap_end)
+    {
+        panic("Cannot allocate bytes! Out of memory.\\n");
+    }
+    alloc_t *alloc = (alloc_t *)last_alloc;
+    alloc->status = 1;
+    alloc->size = size;
+
+    last_alloc += size;
+    last_alloc += sizeof(alloc_t);
+    last_alloc += 4;
+    printf("Allocated %d bytes from 0x%x to 0x%x\\n", size, (uint32_t)alloc + sizeof(alloc_t), last_alloc);
+    memory_used += size + 4 + sizeof(alloc_t);
+    memset((char *)((uint32_t)alloc + sizeof(alloc_t)), 0, size);
+    return (char *)((uint32_t)alloc + sizeof(alloc_t));
+}
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{memory.c}}
+\label{lst:memory_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../../include/libc/system.h"
+#include "../../../include/kernel/memory.h"
+
+static uint32_t* page_directory = 0;   // Define a pointer to the page directory and initialize it to zero
+static uint32_t page_dir_loc = 0;      // Define the location of the page directory and initialize it to zero
+static uint32_t* last_page = 0;        // Define a pointer to the last page and initialize it to zero
+
+/* Paging now will be really simple
+ * we reserve 0-8MB for kernel stuff
+ * heap will be from approx 1mb to 4mb
+ * and paging stuff will be from 4mb
+ */
+
+// Function to map virtual addresses to physical addresses
+void paging_map_virtual_to_phys(uint32_t virt, uint32_t phys)
+{
+    uint16_t id = virt >> 22;        // Get the upper 10 bits of the virtual address to use as index in the page directory
+    for(int i = 0; i < 1024; i++)   // Loop through all 1024 page table entries
+    {
+        last_page[i] = phys | 3;    // Set the page table entry to the physical address with the present and write permissions set
+        phys += 4096;               // Increment the physical address by the page size of 4 KB
+    }
+    page_directory[id] = ((uint32_t)last_page) | 3;  // Set the page directory entry for the virtual address to the physical address of the page table with present and write permissions set
+    last_page = (uint32_t *)(((uint32_t)last_page) + 4096); // Move to the next page in memory
+}
+
+// Function to enable paging
+void paging_enable()
+{
+    asm volatile("mov %%eax, %%cr3": :"a"(page_dir_loc)); // Load the physical address of the page directory into the CR3 register
+    asm volatile("mov %cr0, %eax");         // Load the CR0 register into the EAX register
+    asm volatile("orl $0x80000000, %eax");  // Set the paging enable bit in the EAX register
+    asm volatile("mov %eax, %cr0");         // Load the EAX register into the CR0 register to enable paging
+}
+
+// Function to initialize paging
+void init_paging()
+{
+    printf("Setting up paging\\n");
+    page_directory = (uint32_t*)0x400000;      // Set the page directory to start at 4 MB
+    page_dir_loc = (uint32_t)page_directory;  // Set the physical address of the page directory
+    last_page = (uint32_t *)0x404000;         // Set the last page to start at 4 MB + 4 KB
+    for(int i = 0; i < 1024; i++)             // Loop through all 1024 page directory entries
+    {
+        page_directory[i] = 0 | 2;            // Set the page directory entry to not present with supervisor level read/write permissions
+    }
+    paging_map_virtual_to_phys(0, 0);         // Map the first 4 MB of virtual memory to the first 4 MB of physical memory
+    paging_map_virtual_to_phys(0x400000, 0x400000); // Map the next 4 MB of virtual memory to the next 4 MB of physical memory
+    paging_enable();                          // Enable paging
+    printf("Paging was successfully enabled!\\n");
+}
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{memutils.c}}
+\label{lst:memutils_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../../include/kernel/memory.h"   // Include the header file that defines the functions
+
+#include "../../../include/libc/stdint.h"    // Include the standard integer types
+#include "../../../include/libc/stddef.h"    // Include the standard size types
+
+// Function to copy memory from source to destination
+void* memcpy(void* dest, const void* src, size_t count )
+{
+    char* dst8 = (char*)dest;  // Cast the destination pointer to char*
+    char* src8 = (char*)src;   // Cast the source pointer to char*
+
+    if (count & 1) {           // If the count is odd
+        dst8[0] = src8[0];     // Copy one byte from source to destination
+        dst8 += 1;             // Increment destination pointer by one byte
+        src8 += 1;             // Increment source pointer by one byte
+    }
+
+    count /= 2;                // Divide the count by two to copy 2 bytes at a time
+    while (count--) {          // Loop through each pair of 2 bytes
+        dst8[0] = src8[0];     // Copy the first byte of the pair from source to destination
+        dst8[1] = src8[1];     // Copy the second byte of the pair from source to destination
+
+        dst8 += 2;             // Increment destination pointer by 2 bytes
+        src8 += 2;             // Increment source pointer by 2 bytes
+    }
+
+    return (void*)dest;        // Return the destination pointer
+}
+
+// Function to set a block of memory with a 16-bit value
+void* memset16 (void *ptr, uint16_t value, size_t num)
+{
+    uint16_t* p = ptr;        // Cast the pointer to uint16_t*
+    while(num--)
+        *p++ = value;         // Set each 2-byte element to the given value
+    return ptr;               // Return the pointer to the block of memory
+}
+
+// Function to set a block of memory with a byte value
+void* memset (void * ptr, int value, size_t num )
+{
+    unsigned char* p=ptr;     // Cast the pointer to unsigned char*
+    while(num--)
+        *p++ = (unsigned char)value;   // Set each byte to the given value
+    return ptr;               // Return the pointer to the block of memory
+}
+
+\end{minted}
+
+
+\subsection{PIT Timer}
+\label{apx:pit_timer}
+
+
+\captionof{listing}{Implementation of \texttt{pit.h}}
+\label{lst:pit_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef PIT_H
+#define PIT_H
+
+#include "../libc/stdbool.h"
+#include "../libc/stdint.h"
+
+// PIT (Programmable Interval Timer) related macros
+#define PIT_CMD_PORT 0x43
+#define PIT_CHANNEL0_PORT 0x40
+#define PIT_CHANNEL1_PORT 0x41
+#define PIT_CHANNEL2_PORT 0x42
+#define PC_SPEAKER_PORT 0x61
+#define PIT_DEFAULT_DIVISOR                                                    \\
+  0x4E20 // 20000, which gives about 18.2 Hz (1193180 / 20000)
+
+// IRQ0 related macros
+#define PIC1_CMD_PORT 0x20
+#define PIC1_DATA_PORT 0x20
+#define PIC_EOI 0x20 /* End-of-interrupt command code */
+
+// Custom sleep function constants
+#define PIT_BASE_FREQUENCY 1193180
+#define TARGET_FREQUENCY 1000 // 1000 Hz
+#define DIVIDER (PIT_BASE_FREQUENCY / TARGET_FREQUENCY)
+#define TICKS_PER_MS (TARGET_FREQUENCY / TARGET_FREQUENCY)
+
+void init_pit();
+void sleep_interrupt(uint32_t milliseconds);
+void sleep_busy(uint32_t milliseconds);
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{pit.c}}
+\label{lst:pit_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/kernel/pit.h"
+#include "../../include/io.h"
+#include "../../include/irq.h"
+#include "../../include/libc/stdio.h"
+
+// Counter for the amount of PIT ticks since init_pit() was called.
+static volatile uint32_t tick = 0;
+
+static uint32_t get_current_tick() { return tick; }
+
+// Handler for IRQ0 called everytime the PIT triggers a hardware interrupt
+static void pit_irq_handler(registers_t *regs) { tick++; }
+
+// Initialise the PIT to fire at TARGET_FREQUENCY.
+void init_pit() {
+  irq_register_handler(0, pit_irq_handler);
+
+  // Bit 7 - 6 = 00 = channel 0
+  // Bit 5 - 4 = 11 = access mode: lobyte/hibyte
+  // Bit 3 - 1 = 011 = square wave generator
+  // bit 0 = 0 = 16-bit binary mode
+  // 0011 0110 = 0x36
+  uint16_t divisor = DIVIDER;
+  outb(PIT_CMD_PORT, 0x36);
+  outb(PIT_CHANNEL0_PORT, divisor & 0xFF);
+  outb(PIT_CHANNEL0_PORT, (divisor >> 8) & 0xFF);
+}
+
+// Busy sleeping where the CPU runs useless while loop while waiting.
+void sleep_busy(uint32_t milliseconds) {
+  uint32_t start_tick = get_current_tick();
+  uint32_t ticks_to_wait = milliseconds * TICKS_PER_MS;
+  uint32_t elapsed_ticks = 0;
+
+  while (elapsed_ticks < ticks_to_wait) {
+    while (get_current_tick() == start_tick + elapsed_ticks) {
+    }
+    elapsed_ticks++;
+  }
+}
+
+// Interrupt driven sleep where we allow interrupts with `sti` instruction,
+// and put the CPU in a low resource usage mode waiting for hardware interrupt
+// using the `hlt` instruction
+void sleep_interrupt(uint32_t milliseconds) {
+  uint32_t current_tick = get_current_tick();
+  uint32_t ticks_to_wait = milliseconds * TICKS_PER_MS;
+  uint32_t end_ticks = current_tick + ticks_to_wait;
+
+  while (current_tick < end_ticks) {
+    asm volatile("sti");
+    asm volatile("hlt");
+    current_tick = get_current_tick();
+  }
+}
+
+\end{minted}
+
+
+\subsection{Song System}
+\label{apx:song_system}
+
+
+\captionof{listing}{Implementation of \texttt{frequencies.h}}
+\label{lst:frequencies_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+
+#ifndef UIAOS_FREQUENCIES_H
+#define UIAOS_FREQUENCIES_H
+
+// Note frequencies (in Hz)
+#define C0 16
+#define Cs0 17
+#define D0 18
+#define Ds0 19
+#define E0 21
+#define F0 22
+#define Fs0 23
+#define G0 25
+#define Gs0 26
+#define A0 27
+#define As0 29
+#define B0 31
+
+#define C1 33
+#define Cs1 35
+#define D1 37
+#define Ds1 39
+#define E1 41
+#define F1 44
+#define Fs1 46
+#define G1 49
+#define Gs1 52
+#define A1 55
+#define As1 58
+#define B1 62
+
+#define C2 65
+#define Cs2 69
+#define D2 73
+#define Ds2 78
+#define E2 82
+#define F2 87
+#define Fs2 92
+#define G2 98
+#define Gs2 104
+#define A2 110
+#define As2 117
+#define B2 123
+
+#define C3 131
+#define Cs3 139
+#define D3 147
+#define Ds3 156
+#define E3 165
+#define F3 175
+#define Fs3 185
+#define G3 196
+#define Gs3 208
+#define A3 220
+#define As3 233
+#define B3 247
+
+#define C4 262
+#define Cs4 277
+#define D4 294
+#define Ds4 311
+#define E4 330
+#define F4 349
+#define Fs4 370
+#define G4 392
+#define Gs4 415
+#define A4 440
+#define As4 466
+#define B4 494
+
+#define C5 523
+#define Cs5 554
+#define D5 587
+#define Ds5 622
+#define E5 659
+#define F5 698
+#define Fs5 740
+#define G5 784
+#define Gs5 831
+#define A5 880
+#define As5 932
+#define B5 988
+
+#define C6 1047
+#define Cs6 1109
+#define D6 1175
+#define Ds6 1245
+#define E6 1319
+#define F6 1397
+#define Fs6 1480
+#define G6 1568
+#define Gs6 1661
+
+#define A6 1760
+#define As6 1865
+#define B6 1976
+
+#define C7 2093
+#define Cs7 2217
+#define D7 2349
+#define Ds7 2489
+#define E7 2637
+#define F7 2794
+#define Fs7 2960
+#define G7 3136
+#define Gs7 3322
+#define A7 3520
+#define As7 3729
+#define B7 3951
+
+#define C8 4186
+#define Cs8 4435
+#define D8 4699
+#define Ds8 4978
+#define E8 5274
+#define F8 5588
+#define Fs8 5919
+#define G8 6272
+#define Gs8 6645
+#define A8 7040
+#define As8 7459
+#define B8 7902
+#define C9 8372
+#define Cs9 8870
+#define D9 9397
+#define Ds9 9956
+#define E9 10548
+#define F9 11175
+#define Fs9 11839
+#define G9 12543
+#define Gs9 13290
+#define A9 14080
+#define As9 14917
+#define B9 15804
+
+#define A_SHARP4 466
+#define G_SHARP4 415
+#define R 0 // R (no sound) Rest note
+
+// Orders the frequencies to be used by the piano.c
+static const unsigned int freqs[] = {
+    C0,  Cs0, D0,  Ds0, E0,  F0,  Fs0, G0,  Gs0, A0,  As0, B0,  C1,  Cs1, D1,
+    Ds1, E1,  F1,  Fs1, G1,  Gs1, A1,  As1, B1,  C2,  Cs2, D2,  Ds2, E2,  F2,
+    Fs2, G2,  Gs2, A2,  As2, B2,  C3,  Cs3, D3,  Ds3, E3,  F3,  Fs3, G3,  Gs3,
+    A3,  As3, B3,  C4,  Cs4, D4,  Ds4, E4,  F4,  Fs4, G4,  Gs4, A4,  As4, B4,
+    C5,  Cs5, D5,  Ds5, E5,  F5,  Fs5, G5,  Gs5, A5,  As5, B5,  C6,  Cs6, D6,
+    Ds6, E6,  F6,  Fs6, G6,  Gs6, A6,  As6, B6,  C7,  Cs7, D7,  Ds7, E7,  F7,
+    Fs7, G7,  Gs7, A7,  As7, B7,  C8,  Cs8, D8,  Ds8, E8,  F8,  Fs8, G8,  Gs8,
+    A8,  As8, B8,  C9,  Cs9, D9,  Ds9, E9,  F9,  Fs9, G9,  Gs9, A9,  As9, B9,
+};
+
+#endif // UIAOS_FREQUENCIES_H
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{song.h}}
+\label{lst:song_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef SONG_H
+#define SONG_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "../../../include/kernel/memory.h"
+#ifdef __cplusplus
+}
+#endif
+#include "../../../include/libc/stdint.h"
+#include "frequencies.h"
+
+// Define a struct to represent a single musical note
+typedef struct {
+  uint32_t frequency; // The frequency of the note in Hz (e.g., A4 = 440 Hz)
+  uint32_t duration;  // The duration of the note in milliseconds
+} Note;
+
+// Define a struct to represent a song
+typedef struct {
+  Note *notes;     // Pointer to an array of Note structs representing the song
+  uint32_t length; // The number of notes in the song
+} Song;
+
+// Define a struct to represent a song player
+typedef struct {
+  void (*play_song)(
+      Song *song); // Function pointer to a function that plays a song
+} SongPlayer;
+
+// Function prototype for creating a new SongPlayer instance
+// Returns a pointer to a newly created SongPlayer object
+#ifdef __cplusplus
+extern "C"
+#endif
+    SongPlayer *create_song_player();
+
+#ifdef __cplusplus
+extern "C"
+#endif
+    void piano_play_sound(uint32_t frequency);
+
+#ifdef __cplusplus
+extern "C"
+#endif
+    void disable_speaker();
+
+static Note music_1[] = {
+    {E5, 250}, {R, 125},  {E5, 125}, {R, 125},        {E5, 125}, {R, 125},
+    {C5, 125}, {E5, 125}, {G5, 125}, {R, 125},        {G4, 125}, {R, 250},
+
+    {C5, 125}, {R, 250},  {G4, 125}, {R, 125},        {E4, 125}, {R, 125},
+    {A4, 125}, {B4, 125}, {R, 125},  {A_SHARP4, 125}, {A4, 125}, {R, 125},
+    {G4, 125}, {E5, 125}, {G5, 125}, {A5, 125},       {F5, 125}, {G5, 125},
+    {R, 125},  {E5, 125}, {C5, 125}, {D5, 125},       {B4, 125}, {R, 125},
+
+    {C5, 125}, {R, 250},  {G4, 125}, {R, 125},        {E4, 125}, {R, 125},
+    {A4, 125}, {B4, 125}, {R, 125},  {A_SHARP4, 125}, {A4, 125}, {R, 125},
+    {G4, 125}, {E5, 125}, {G5, 125}, {A5, 125},       {F5, 125}, {G5, 125},
+    {R, 125},  {E5, 125}, {C5, 125}, {D5, 125},       {B4, 125}, {R, 125},
+};
+
+static Note music_2[] = {
+    {A4, 200},  {E5, 200}, {A5, 200},  {R, 100},  {A5, 200},  {A5, 200},
+    {Gs5, 200}, {A5, 200}, {R, 100},   {E5, 200}, {R, 100},   {E5, 200},
+    {R, 100},   {E5, 200}, {R, 100},   {E5, 200}, {A4, 200},  {E5, 200},
+    {A5, 200},  {R, 100},  {A5, 200},  {A5, 200}, {Gs5, 200}, {A5, 200},
+    {R, 100},   {E5, 200}, {R, 100},   {E5, 200}, {R, 100},   {E5, 200},
+    {R, 100},   {E5, 200}, {A4, 200},  {E5, 200}, {A5, 200},  {R, 100},
+    {A5, 200},  {A5, 200}, {Gs5, 200}, {A5, 200}, {R, 100},   {E5, 200},
+    {R, 100},   {E5, 200}, {R, 100},   {E5, 200}, {R, 100},   {E5, 200}};
+
+static Note music_3[] = {
+    {E4, 200}, {E4, 200}, {F4, 200}, {G4, 200}, {G4, 200}, {F4, 200}, {E4, 200},
+    {D4, 200}, {C4, 200}, {C4, 200}, {D4, 200}, {E4, 200}, {E4, 400}, {R, 200},
+    {D4, 200}, {D4, 200}, {E4, 200}, {F4, 200}, {F4, 200}, {E4, 200}, {D4, 200},
+    {C4, 200}, {A4, 200}, {A4, 200}, {A4, 200}, {G4, 400}};
+
+static Note music_4[] = {
+    {C4, 500}, {D4, 500},  {E4, 500}, {C4, 500}, {C4, 500},  {D4, 500},
+    {E4, 500}, {C4, 500},  {E4, 500}, {F4, 500}, {G4, 1000}, {E4, 500},
+    {F4, 500}, {G4, 1000}, {G4, 250}, {A4, 250}, {G4, 250},  {F4, 250},
+    {E4, 500}, {C4, 500},  {G4, 250}, {A4, 250}, {G4, 250},  {F4, 250},
+    {E4, 500}, {C4, 500},  {C4, 500}, {G3, 500}, {C4, 1000}, {C4, 500},
+    {G3, 500}, {C4, 1000}};
+
+static Note music_5[] = {
+    {E4, 375}, {C4, 375}, {D4, 375}, {A3, 375}, {B3, 375}, {D4, 375},
+    {C4, 375}, {A3, 375}, {E4, 375}, {C4, 375}, {D4, 375}, {A3, 375},
+    {B3, 375}, {D4, 375}, {C4, 375}, {A3, 375},
+};
+
+static Note music_6[] = {
+    {F4, 250},       {F4, 250},       {F4, 250},       {C5, 250},
+    {A_SHARP4, 250}, {G_SHARP4, 250}, {F4, 500},       {F4, 250},
+    {F4, 250},       {F4, 250},       {C5, 250},       {A_SHARP4, 250},
+    {G_SHARP4, 250}, {F4, 500},       {A_SHARP4, 250}, {A_SHARP4, 250},
+    {A_SHARP4, 250}, {F5, 250},       {D5, 250},       {C5, 250},
+    {A_SHARP4, 500}, {A_SHARP4, 250}, {A_SHARP4, 250}, {A_SHARP4, 250},
+    {F5, 250},       {D5, 250},       {C5, 250},       {A_SHARP4, 500},
+};
+
+// Defines musical durations
+static const int bar = 3000;
+static const int half = bar / 2;
+static const int quarter = bar / 4;
+static const int eight = bar / 8;
+static const int sixteenth = bar / 16;
+static const int half_dot = bar / 4 + quarter;
+static const int quarter_dot = bar / 4 + eight;
+static const int eight_dot = bar / 4 + sixteenth;
+
+static Note nasjonal_sangen[] = {
+    // bar 1
+    {G4, quarter_dot},
+    {F4, eight},
+    {E4, quarter},
+    {D4, quarter},
+    // bar 2
+    {C4, quarter},
+    {D4, quarter},
+    {E4, quarter},
+    {F4, quarter},
+    // bar 3
+    {G4, quarter_dot},
+    {A4, eight},
+    {G4, quarter},
+    {F4, quarter},
+    // bar 4
+    {E4, half_dot},
+    {R, quarter},
+    // bar 5
+    {A4, quarter_dot},
+    {G4, eight},
+    {F4, quarter},
+    {E4, quarter},
+    // bar 6
+    {D4, quarter},
+    {E4, quarter},
+    {F4, quarter},
+    {G4, quarter},
+    // bar 7
+    {G4, quarter_dot},
+    {A4, eight},
+    {A4, quarter},
+    {B4, quarter},
+    // bar 8
+    {C5, half},
+    {R, half},
+    // bar 9
+    {C5, quarter_dot},
+    {C5, eight},
+    {B4, eight_dot},
+    {B4, sixteenth},
+    {A4, eight_dot},
+    {A4, sixteenth},
+    // bar 10
+    {G4, half},
+    {E4, quarter},
+    {R, quarter},
+    // bar 11
+    {A4, quarter_dot},
+    {A4, eight},
+    {G4, quarter},
+    {G4, quarter},
+    // bar 12
+    {F4, half},
+    {R, quarter},
+    {G4, eight_dot},
+    {G4, sixteenth},
+    // bar 13
+    {G4, quarter},
+    {A4, quarter},
+    {A4, quarter},
+    {B4, quarter},
+    // bar 14
+    {B4, half},
+    {C5, half},
+    // bar 15
+    {C5, quarter_dot},
+    {C5, eight},
+    {B4, quarter},
+    {C5, quarter},
+    // bar 16
+    {D5, half},
+    {R, quarter},
+    {D5, eight_dot},
+    {D5, sixteenth},
+    // bar 17
+    {D5, quarter},
+    {E5, quarter},
+    {F5, quarter},
+    {E5, quarter},
+    // bar 18
+    {D5, half},
+    {C5, quarter},
+    {B4, eight_dot},
+    {A4, sixteenth},
+    // bar 19
+    {G4, quarter_dot},
+    {A4, eight},
+    {A4, quarter},
+    {B4, quarter},
+    // bar 20
+    {C5, bar},
+
+};
+
+// Removes a duration at the end of each note and replaces it silence of the
+// same duration.
+static Song add_space_between_notes(Song *song, uint32_t breath_ms) {
+  Note *new_notes = (Note *)malloc(sizeof(Note) * song->length * 2);
+  for (uint32_t i = 0; i < song->length; i++) {
+    new_notes[i * 2] =
+        (Note){song->notes[i].frequency, song->notes[i].duration - breath_ms};
+    new_notes[i * 2 + 1] = (Note){R, breath_ms};
+  }
+  return (Song){new_notes, song->length * 2};
+}
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{song.cpp}}
+\label{lst:song_cpp}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{cpp}
+#include "song/song.h"
+#include "../../include/libc/stdint.h"
+#include "../../include/program.h"
+
+extern "C" {
+#include "../../include/io.h"
+#include "../../include/kernel/pit.h"
+}
+
+void enable_speaker() {
+  // Read the current state of the PC speaker control register
+  uint8_t speaker_state = inb(PC_SPEAKER_PORT);
+  /*
+  Bit 0: Speaker gate
+          0: Speaker disabled
+          1: Speaker enabled
+  Bit 1: Speaker data
+          0: Data is not passed to the speaker
+          1: Data is passed to the speaker
+  */
+  // Check if bits 0 and 1 are not set (0 means that the speaker is disabled)
+  if (speaker_state != (speaker_state | 3)) {
+    // If bits 0 and 1 are not set, enable the speaker by setting bits 0 and 1
+    // to 1
+    outb(PC_SPEAKER_PORT, speaker_state | 3);
+  }
+}
+
+extern "C" void disable_speaker() {
+  // Turn off the PC speaker
+  uint8_t speaker_state = inb(PC_SPEAKER_PORT);
+  outb(PC_SPEAKER_PORT, speaker_state & 0xFC);
+}
+
+void play_sound(uint32_t frequency) {
+  if (frequency == 0) {
+    // If the note is no sound we disable the speaker
+    disable_speaker();
+    return;
+  }
+
+  auto divisor = (uint16_t)(PIT_BASE_FREQUENCY / frequency);
+
+  // Set up the PIT
+  outb(PIT_CMD_PORT, 0b10110110);
+  outb(PIT_CHANNEL2_PORT, (uint8_t)(divisor & 0xFF));
+  outb(PIT_CHANNEL2_PORT, (uint8_t)(divisor >> 8));
+}
+
+void play_song_impl(Song *song) {
+  for (uint32_t i = 0; i < song->length; i++) {
+    if (active_program != PROGRAM_RADIO &&
+        active_program != PROGRAM_FEDRELANDET) {
+      return;
+    }
+    // enable the speaker for each note in case previous note was no sound.
+    enable_speaker();
+    Note *note = &song->notes[i];
+    // printf("Note: %d, Freq=%d, Sleep=%d\\n", i, note->frequency,
+    // note->duration);
+    play_sound(note->frequency);
+    sleep_interrupt(note->duration);
+  }
+  disable_speaker();
+}
+
+void play_song(Song *song) { play_song_impl(song); }
+
+extern "C" SongPlayer *create_song_player() {
+  auto *player = new SongPlayer();
+  player->play_song = play_song_impl;
+  return player;
+}
+
+// enables speaker then plays sound. Used by piano.c
+extern "C" void piano_play_sound(uint32_t freq) {
+  enable_speaker();
+  play_sound(freq);
+}
+
+\end{minted}
+
+
+\section{Assignment 5 - User Interface}
+\label{apx:assignment_5___user_interface}
+
+
+\subsection{Menu System}
+\label{apx:menu_system}
+
+
+\captionof{listing}{Implementation of \texttt{menu.h}}
+\label{lst:menu_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef MENU_H
+#define MENU_H
+
+void print_menu();
+void menu_navigate(int entry);
+void menu_keyboard_handler(int scancode);
+void print_radio_menu();
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{menu.c}}
+\label{lst:menu_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/fedrelandet.h"
+#include "../../include/keyboard.h"
+#include "../../include/libc/stdio.h"
+#include "../../include/piano.h"
+#include "../../include/program.h"
+
+// Prints all available programs and their corresponding index to select them.
+void print_menu() {
+  printf("Select one of the following programs:\\n");
+  printf("To exit any of the programs type 'ctrl-q':\\n");
+  for (int i = 0; i < PROGRAM_END; i++) {
+    const char *program_name = program_names[i];
+    if (i != PROGRAM_MENU) {
+      printf("%d: %s\\n", i, program_name);
+    }
+  }
+}
+
+void print_piano_menu() {
+  printf("Program PIANO selected\\n");
+  printf("Matrix rain will start once you start playing\\n");
+  printf("To exit press 'ctrl-q'\\n");
+  printf("The following keys correspond to the following notes\\n");
+  printf("a = c\\n");
+  printf("s = d\\n");
+  printf("d = e\\n");
+  printf("f = f\\n");
+  printf("g = g\\n");
+  printf("h = a\\n");
+  printf("j = h\\n");
+  printf("k = c\\n");
+  printf("l = d\\n");
+}
+
+void print_radio_menu() {
+  printf("Program RADIO selected\\n");
+  printf("To exit press 'ctrl-q'\\n");
+  printf("press 0-5 to play a song :)\\n");
+}
+
+void print_shell_menu() {
+  printf("program SHELL selected\\n");
+  printf("To exit press 'ctrl-q'\\n");
+  printf("To write press any other character\\n");
+}
+void print_fedrelandet_menu() { printf("Program FEDRELANDET selected\\n"); }
+
+// switches active program based on key presses
+void menu_navigate(int key) {
+  // Translate ASCII numbers to actual numbers.
+  int key_char = key - 48;
+  clearTerminal();
+  switch (key_char) {
+  case PROGRAM_SHELL:
+    active_program = PROGRAM_SHELL;
+    print_shell_menu();
+    break;
+  case PROGRAM_FEDRELANDET:
+    active_program = PROGRAM_FEDRELANDET;
+    hedre_fedrelandet();
+    break;
+  case PROGRAM_PIANO:
+    piano_played_key = 0;
+    active_program = PROGRAM_PIANO;
+    print_piano_menu();
+    break;
+  case PROGRAM_RADIO:
+    active_program = PROGRAM_RADIO;
+    print_radio_menu();
+    break;
+  default:
+    active_program = PROGRAM_MENU;
+    print_menu();
+    break;
+  }
+}
+void menu_keyboard_handler(int scancode) {
+  if (scancode & 0x80)
+    return;
+  int key = scancode_ascii[scancode];
+  menu_navigate(key);
+}
+
+\end{minted}
+
+
+\subsection{Program System}
+\label{apx:program_system}
+
+
+\captionof{listing}{Implementation of \texttt{program.h}}
+\label{lst:program_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef PROGRAM_H
+#define PROGRAM_H
+
+// Defines enums for all existing programs on KjebbeOS
+typedef enum {
+  PROGRAM_SHELL = 0,
+  PROGRAM_PIANO,
+  PROGRAM_RADIO,
+  PROGRAM_FEDRELANDET,
+  PROGRAM_MENU,
+  // this must always be at the bottom
+  PROGRAM_END,
+} program_t;
+
+static const char *program_names[] = {
+    [PROGRAM_SHELL] = "shell", [PROGRAM_PIANO] = "piano",
+    [PROGRAM_RADIO] = "radio", [PROGRAM_FEDRELANDET] = "FEDRELANDET",
+    [PROGRAM_MENU] = "menu",
+};
+
+extern program_t active_program;
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{program.c}}
+\label{lst:program_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/program.h"
+
+// default program is menu
+program_t active_program = PROGRAM_MENU;
+
+\end{minted}
+
+
+\subsection{Shell}
+\label{apx:shell}
+
+
+\captionof{listing}{Implementation of \texttt{shell.h}}
+\label{lst:shell_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../include/libc/stdint.h"
+void shell_keyboard_handler(int scancode);
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{shell.c}}
+\label{lst:shell_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/keyboard.h"
+#include "../../include/libc/stdio.h"
+
+void shell_keyboard_handler(int scancode) {
+  int key = get_key(scancode);
+  if (key != -1) {
+    printf("%c", key);
+  }
+}
+
+\end{minted}
+
+
+\section{Assignment 6 - Applications}
+\label{apx:assignment_6___applications}
+
+
+\subsection{National Anthem}
+\label{apx:national_anthem}
+
+
+\captionof{listing}{Implementation of \texttt{fedrelandet.h}}
+\label{lst:fedrelandet_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef FEDRELANDET_H
+#define FEDRELANDET_H
+void hedre_fedrelandet();
+void fedrelandet_keyboard_handler(int scancode);
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{fedrelandet.c}}
+\label{lst:fedrelandet_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/kernel/pit.h"
+#include "../../include/keyboard.h"
+#include "../../include/libc/stdio.h"
+#include "../../include/matrix.h"
+#include "./song/song.h"
+
+Song nasjonal = {.notes = nasjonal_sangen,
+                 .length =
+                     sizeof(nasjonal_sangen) / sizeof(nasjonal_sangen[0])};
+
+// Prints Norwegian flag and plays Norwegian national anthem
+void hedre_fedrelandet() {
+  SongPlayer *songPlayer = create_song_player();
+  Song song_spaced = add_space_between_notes(&nasjonal, 50);
+  clearTerminal();
+  ja_vi_elsker();
+  songPlayer->play_song(&song_spaced);
+}
+
+void fedrelandet_keyboard_handler(int scancode) {
+  int key = get_key(scancode);
+  if (key == 'j') {
+    ja_vi_elsker();
+  }
+  if (key == 'h') {
+    hedre_fedrelandet();
+  }
+}
+
+\end{minted}
+
+
+\subsection{Radio}
+\label{apx:radio}
+
+
+\captionof{listing}{Implementation of \texttt{radio.h}}
+\label{lst:radio_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef RADIO_H
+#define RADIO_H
+
+void radio_keyboard_handler(int scancode);
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{radio.c}}
+\label{lst:radio_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/radio.h"
+#include "../../include/keyboard.h"
+#include "../../include/libc/stdio.h"
+#include "../../include/menu.h"
+#include "../lib/song/song.h"
+
+#define FIRST_SONG 0
+#define LAST_SONG 6
+// Defines all songs available in song.h
+Song song_1 = {.notes = music_1,
+               .length = sizeof(music_1) / sizeof(music_1[0])};
+
+Song song_2 = {.notes = music_2,
+               .length = sizeof(music_2) / sizeof(music_2[0])};
+
+Song song_3 = {.notes = music_3,
+               .length = sizeof(music_3) / sizeof(music_3[0])};
+
+Song song_4 = {.notes = music_4,
+               .length = sizeof(music_4) / sizeof(music_4[0])};
+
+Song song_5 = {.notes = music_5,
+               .length = sizeof(music_5) / sizeof(music_5[0])};
+
+Song song_6 = {.notes = music_6,
+               .length = sizeof(music_6) / sizeof(music_6[0])};
+
+Song song_7 = {.notes = nasjonal_sangen,
+               .length = sizeof(nasjonal_sangen) / sizeof(nasjonal_sangen[0])};
+
+Song *songs[] = {
+    [FIRST_SONG] = &song_1, [1] = &song_2, [2] = &song_3,        [3] = &song_4,
+    [4] = &song_5,          [5] = &song_6, [LAST_SONG] = &song_7};
+
+void radio_keyboard_handler(int scancode) {
+  int test_key = get_key(scancode);
+  if (test_key == -1) {
+    return;
+  }
+
+  int key = test_key - 48;
+  // Return early if key is out of range
+  if (key < FIRST_SONG || key > LAST_SONG) {
+    printf("You typed '%d' which is out of range, please choose a song between "
+           "%d - %d\\n",
+           key, FIRST_SONG, LAST_SONG);
+    return;
+  }
+
+  SongPlayer *songPlayer = create_song_player();
+  printf("Playing song number: %d", key);
+  Song *song_to_play = songs[key];
+  Song song_spaced = add_space_between_notes(song_to_play, 50);
+  songPlayer->play_song(&song_spaced);
+  // printf("Finished playing song number: %d", key);
+  // print_radio_menu();
+}
+
+\end{minted}
+
+
+\subsection{Piano}
+\label{apx:piano}
+
+
+\captionof{listing}{Implementation of \texttt{piano.h}}
+\label{lst:piano_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef PIANO_H
+#define PIANO_H
+
+#include "libc/stdint.h"
+
+void piano_keyboard_handler(uint8_t scancode);
+extern int piano_played_key;
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{piano.c}}
+\label{lst:piano_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/piano.h"
+#include "../../include/kernel/pit.h"
+#include "../../include/keyboard.h"
+#include "../../include/libc/stdio.h"
+#include "../../include/matrix.h"
+#include "song/frequencies.h"
+#include "song/song.h"
+
+// Defines piano keyboard layout and their offsets from C.
+static const uint32_t scancode_note_offsets[128] = {
+    [0x1E] = 1,  // a (c)
+    [0x11] = 2,  // w (Db)
+    [0x1F] = 3,  // s (d)
+    [0x12] = 4,  // e (Eb)
+    [0x20] = 5,  // d (e)
+    [0x21] = 6,  // f (f)
+    [0x14] = 7,  // t (f#)
+    [0x22] = 8,  // g (g)
+    [0x15] = 9,  // y (Ab)
+    [0x23] = 10, // h (A)
+    [0x16] = 11, // u (Bb)
+    [0x24] = 12, // j (H)
+    [0x25] = 13, // k (C)
+    [0x18] = 14, // o (Db)
+    [0x26] = 15, // l (d)
+};
+
+int piano_played_key = 0;
+
+void piano_keyboard_handler(uint8_t scancode) {
+  if (scancode & 0x80) {
+    disable_speaker();
+    return;
+  }
+  piano_played_key = 1;
+  // if key release bit is set we disable speaker and return
+  int init_offset = scancode_note_offsets[scancode];
+  if (init_offset) {
+    int note_offset = init_offset - 1;
+    int octave = 5;
+    int freq_to_play = (octave * 12) + note_offset;
+    int freq = freqs[freq_to_play];
+    // Changes the letter and number that is drawn on the matrix.
+    update_matrix_current(note_offset);
+    piano_play_sound(freq);
+  }
+}
+
+\end{minted}
+
+
+\subsection{Matrix}
+\label{apx:matrix}
+
+
+\captionof{listing}{Implementation of \texttt{matrix.h}}
+\label{lst:matrix_h}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#ifndef MATRIX_H
+#define MATRIX_H
+
+void matrix_rain_frame();
+void print_frame();
+void colorshow();
+void ja_vi_elsker();
+void update_matrix_current();
+
+extern int matrix_current_small;
+extern int matrix_current_large;
+extern int matrix_current_number;
+
+#endif
+
+\end{minted}
+
+
+\captionof{listing}{Implementation of \texttt{matrix.c}}
+\label{lst:matrix_c}
+\begin{minted}[
+    linenos,
+    breaklines,
+    frame=single,
+    framesep=3mm,
+    baselinestretch=1.1,
+    numbersep=6pt,
+    fontsize=\footnotesize,
+    tabsize=4,
+    bgcolor=white,
+    style=friendly,
+]{c}
+#include "../../include/kernel/pit.h"
+#include "../../include/libc/stdio.h"
+
+char *width_string = "0000000000000000000000000000000000000000000000000000000"
+                     "0000000000000000000000000";
+
+char *width1_string = "00000000000000000000";
+
+char *width2_string = "00000";
+
+char *width3_string = "0000000000";
+
+char *width4_string = "00000";
+
+char *width5_string = "0000000000000000000000000000000000000000";
+
+// Defines top and bottom strips for the Norwegian flag
+void print_strip() {
+  printf_color(width1_string, VGA_RED);
+  printf_color(width2_string, VGA_WHITE);
+  printf_color(width3_string, VGA_BLUE);
+  printf_color(width4_string, VGA_WHITE);
+  printf_color(width5_string, VGA_RED);
+}
+
+// Prints top part of Norwegian flag
+void print_top() {
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+}
+
+// Prints bottom part of Norwegian flag
+void print_bottom() {
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+  print_strip();
+}
+
+void print_middle_strip() {
+  printf_color(width1_string, VGA_WHITE);
+  printf_color(width2_string, VGA_WHITE);
+  printf_color(width3_string, VGA_BLUE);
+  printf_color(width4_string, VGA_WHITE);
+  printf_color(width5_string, VGA_WHITE);
+}
+// Prints middle part of Norwegian flag
+void print_middle() {
+  print_middle_strip();
+  print_middle_strip();
+  printf_color(width_string, VGA_BLUE);
+  printf_color(width_string, VGA_BLUE);
+  printf_color(width_string, VGA_BLUE);
+  printf_color(width_string, VGA_BLUE);
+  print_middle_strip();
+  print_middle_strip();
+}
+
+// Main function to print Norwegian flag
+void ja_vi_elsker() {
+  clearTerminal();
+  print_top();
+  print_middle();
+  print_bottom();
+}
+
+// pseudo random number generator
+static uint32_t seed = 12345;
+static uint32_t rng() {
+  seed = seed * 1664525 + 1013904223;
+  return seed;
+}
+
+int matrix_current_small = 'a';
+int matrix_current_large = 'A';
+int matrix_current_number = '0';
+
+// Changes the characters to be printed based on piano offset
+void update_matrix_current(int offset) {
+  switch (offset % 12) {
+  case (0):
+    matrix_current_small = 'c';
+    matrix_current_large = 'C';
+    matrix_current_number = '0';
+    break;
+  case (1):
+    matrix_current_small = 'c';
+    matrix_current_large = 'C';
+    matrix_current_number = '1';
+    break;
+  case (2):
+    matrix_current_small = 'd';
+    matrix_current_large = 'D';
+    matrix_current_number = '2';
+    break;
+  case (3):
+    matrix_current_small = 'd';
+    matrix_current_large = 'D';
+    matrix_current_number = '3';
+    break;
+
+  case (4):
+    matrix_current_small = 'e';
+    matrix_current_large = 'E';
+    matrix_current_number = '4';
+    break;
+
+  case (5):
+    matrix_current_small = 'f';
+    matrix_current_large = 'F';
+    matrix_current_number = '5';
+    break;
+  case (6):
+    matrix_current_small = 'f';
+    matrix_current_large = 'F';
+    matrix_current_number = '6';
+    break;
+  case (7):
+    matrix_current_small = 'g';
+    matrix_current_large = 'G';
+    matrix_current_number = '7';
+    break;
+  case (8):
+    matrix_current_small = 'g';
+    matrix_current_large = 'G';
+    matrix_current_number = '8';
+    break;
+  case (9):
+    matrix_current_small = 'a';
+    matrix_current_large = 'A';
+    matrix_current_number = '9';
+    break;
+  case (10):
+    matrix_current_small = 'a';
+    matrix_current_large = 'A';
+    matrix_current_number = '0';
+    break;
+  case (11):
+    matrix_current_small = 'b';
+    matrix_current_large = 'B';
+    matrix_current_number = '1';
+    break;
+  }
+}
+
+// Reload values for each character to be printed based on what the piano plays.
+const int reload_small = 30;
+int counter_small = reload_small;
+const int reload_large = 25;
+int counter_large = reload_large;
+const int reload_number = 48;
+int counter_number = reload_number;
+
+// Renders a single frame of the matrix rain
+void matrix_rain_frame() {
+  static int drop[80] = {0};
+
+  for (int x = 0; x < 80; x++) {
+    int y = drop[x];
+
+    // Piano coupled animation
+    if (--counter_small == 0) {
+      terminal_set_char(rng() % 80, rng() % 25, matrix_current_small,
+                        VGA_RED_ON_BLACK);
+      // Clear random index on screen.
+      terminal_set_char(rng() % 80, rng() % 25, ' ', VGA_WHITE_ON_BLACK);
+      counter_small = reload_small;
+    }
+    if (--counter_large == 0) {
+      terminal_set_char(rng() % 80, rng() % 25, matrix_current_large,
+                        VGA_BLUE_ON_BLACK);
+      // Clear random index on screen.
+      terminal_set_char(rng() % 80, rng() % 25, ' ', VGA_WHITE_ON_BLACK);
+      counter_large = reload_large;
+    }
+    if (--counter_number == 0) {
+      terminal_set_char((rng() * rng()) % 80, rng() % 25, matrix_current_number,
+                        VGA_WHITE_ON_BLACK);
+      // Clear random index on screen.
+      terminal_set_char(rng() % 80, rng() % 25, ' ', VGA_WHITE_ON_BLACK);
+      counter_number = reload_number;
+    }
+
+    // Matrix rainfall
+    // Set lowest row to yellow colour
+    terminal_set_char(x, y, '0' + (rng() % 10), VGA_YELLOW_ON_BLACK);
+    // Set trail to green colour
+    terminal_set_char(x, (y + 24) % 25, '0' + (rng() % 10),
+                      VGA_LIGHT_GREEN_ON_BLACK);
+    // Clear previous row
+    terminal_set_char(x, (y + 23) % 25, ' ', VGA_WHITE_ON_BLACK);
+
+    // 1/10 chance for raindrop to fall one step lower.
+    if (rng() % 10 == 1) {
+      drop[x] = (drop[x] + 1) % 25;
+    }
+  }
+}
+
+\end{minted}
+
+\end{document}

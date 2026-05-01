@@ -1,0 +1,117 @@
+[
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/bin/nasm -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -f elf32 -o CMakeFiles/uiaos-kernel.dir/src/multiboot2.asm.o /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/multiboot2.asm",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/multiboot2.asm"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/kernel.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/kernel.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/kernel.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-g++ -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -g -Wno-unused-variable -Wno-unused-parameter -std=gnu++20 -o CMakeFiles/uiaos-kernel.dir/src/kernel.cpp.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/kernel.cpp",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/kernel.cpp"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/gdt.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/gdt.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/gdt.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/idt.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/idt.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/idt.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/bin/nasm -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -f elf32 -o CMakeFiles/uiaos-kernel.dir/src/lib/isr.asm.o /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/isr.asm",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/isr.asm"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/isr.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/isr.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/isr.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/bin/nasm -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -f elf32 -o CMakeFiles/uiaos-kernel.dir/src/lib/irq.asm.o /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/irq.asm",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/irq.asm"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/irq.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/irq.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/irq.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/keyboard.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/keyboard.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/keyboard.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/program.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/program.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/program.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/piano.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/piano.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/piano.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/libc/stdio.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/libc/stdio.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/libc/stdio.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/memory/malloc.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/memory/malloc.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/memory/malloc.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/memory/memory.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/memory/memory.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/memory/memory.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/memory/memutils.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/memory/memutils.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/memory/memutils.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/pit.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/pit.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/pit.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-g++ -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -g -Wno-unused-variable -Wno-unused-parameter -std=gnu++20 -o CMakeFiles/uiaos-kernel.dir/src/lib/song.cpp.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/song.cpp",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/song.cpp"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/menu.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/menu.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/menu.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/radio.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/radio.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/radio.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/matrix.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/matrix.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/matrix.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/fedrelandet.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/fedrelandet.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/fedrelandet.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/69_kjebbe",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include -I/workspaces/2026-ikt218-osdev/src/69_kjebbe/include/libc -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/lib/shell.c.o -c /workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/shell.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/69_kjebbe/src/lib/shell.c"
+}
+]

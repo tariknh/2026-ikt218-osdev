@@ -1,0 +1,67 @@
+[
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/kernel.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/kernel.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/kernel.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/gdt.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/gdt.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/gdt.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/terminal.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/terminal.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/terminal.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/idt.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/idt.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/idt.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/interrupt.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/interrupt.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/interrupt.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/keyboard.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/keyboard.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/keyboard.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/malloc.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/malloc.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/malloc.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/memutils.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/memutils.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/memutils.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/memory.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/memory.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/memory.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/pit.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/pit.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/pit.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/songPlayer.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/songPlayer.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/songPlayer.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/snake.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/snake.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/snake.c"
+},
+{
+  "directory": "/workspaces/AdvOpsys/build/OSDev_18",
+  "command": "/usr/local/bin/i686-elf-gcc  -I/workspaces/AdvOpsys/src/OSDev_18/include -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/piano.c.o -c /workspaces/AdvOpsys/src/OSDev_18/src/piano.c",
+  "file": "/workspaces/AdvOpsys/src/OSDev_18/src/piano.c"
+}
+]

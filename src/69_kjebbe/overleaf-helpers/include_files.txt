@@ -1,0 +1,116 @@
+// File list for OS Development Project Appendix
+// Organized by assignment/feature
+
+# Build System
+
+## CMake and Linker Scripts
+CMakeLists.txt
+src/arch/i386/linker.ld
+src/arch/x86_64/linker.ld
+
+## Boot Configuration
+limine.cfg
+
+## Scripts
+scripts/start_qemu.sh
+
+# Standard Library
+
+## libc Headers
+include/libc/limits.h
+include/libc/stdarg.h
+include/libc/stdbool.h
+include/libc/stddef.h
+include/libc/stdint.h
+include/libc/stdio.h
+include/libc/string.h
+include/libc/system.h
+
+## stdio Implementation
+src/libc/stdio.c
+
+# Assignment 2 - Bootloader and GDT
+
+## Multiboot2
+include/multiboot2.h
+src/multiboot2.asm
+
+## GDT
+include/gdt.h
+src/lib/gdt.c
+
+## Kernel Entry
+src/kernel.c
+src/kernel.cpp
+
+# Assignment 3 - Interrupts and I/O
+
+## IO Port Helpers
+include/io.h
+
+## IDT
+include/idt.h
+src/lib/idt.c
+
+## ISR
+include/isr.h
+src/lib/isr.asm
+src/lib/isr.c
+
+## IRQ
+include/irq.h
+src/lib/irq.asm
+src/lib/irq.c
+
+## Keyboard
+include/keyboard.h
+src/lib/keyboard.c
+
+# Assignment 4 - Memory and Timing
+
+## Memory
+include/kernel/memory.h
+src/lib/memory/malloc.c
+src/lib/memory/memory.c
+src/lib/memory/memutils.c
+
+## PIT Timer
+include/kernel/pit.h
+src/lib/pit.c
+
+## Song System
+src/lib/song/frequencies.h
+src/lib/song/song.h
+src/lib/song.cpp
+
+# Assignment 5 - User Interface
+
+## Menu System
+include/menu.h
+src/lib/menu.c
+
+## Program System
+include/program.h
+src/lib/program.c
+
+## Shell
+include/shell.h
+src/lib/shell.c
+
+# Assignment 6 - Applications
+
+## National Anthem
+include/fedrelandet.h
+src/lib/fedrelandet.c
+
+## Radio
+include/radio.h
+src/lib/radio.c
+
+## Piano
+include/piano.h
+src/lib/piano.c
+
+## Matrix
+include/matrix.h
+src/lib/matrix.c
