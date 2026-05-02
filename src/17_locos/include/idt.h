@@ -23,6 +23,7 @@ struct idt_ptr { // Structure consumed by lidt instruction.
     uint32_t base;  // Linear address of first entry in the IDT array.
 } __attribute__((packed)); // Must match x86 IDTR operand layout exactly.
 
+// Build the IDT and load it into the CPU
 void idt_init(void);  // Builds the IDT entries, remaps all IRQs, and loads in IDTR.
 
 #endif                           

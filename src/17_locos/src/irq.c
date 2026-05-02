@@ -33,6 +33,16 @@ static uint32_t kbd_char_tail = 0;
 static bool shift_down = false;
 static bool caps_lock  = false;
 static bool kbd_echo   = false;
+static bool kbd_extended = false;
+
+// Add one character to the keyboard queue
+static void kbd_queue_char(uint8_t ch) {
+    uint32_t next_head = (kbd_char_head + 1) % KBD_BUF_SIZE;
+    if (next_head != kbd_char_tail) {
+        kbd_char_buffer[kbd_char_head] = ch;
+        kbd_char_head = next_head;
+    }
+}
 
 /* PS/2 Set 1 scancode -> character maps (basic; minimal shift support). */
 static const uint8_t scancode_unshifted[128] = {
@@ -131,11 +141,45 @@ void irq_init(void) {
     outb(PIC2_DATA, 0xFF);
 }
 
+// Handle the keyboard interrupt and decode the scancode
 static void keyboard_handle_irq1(void) {
     uint8_t scancode = inb(KBD_DATA);
     /* Store raw scancode for debugging/report requirements. */
     kbd_scancode_buffer[kbd_buf_head % KBD_BUF_SIZE] = scancode;
     kbd_buf_head++;
+
+    if (scancode == 0xE0) {
+        // Next byte is an extended key code
+        kbd_extended = true;
+        return;
+    }
+
+    if (kbd_extended) {
+        // Handle arrow keys from extended scancodes
+        kbd_extended = false;
+
+        if (scancode & 0x80) {
+            return;
+        }
+
+        switch (scancode) {
+        case 0x48:
+            kbd_queue_char((uint8_t)KBD_KEY_UP);
+            break;
+        case 0x50:
+            kbd_queue_char((uint8_t)KBD_KEY_DOWN);
+            break;
+        case 0x4B:
+            kbd_queue_char((uint8_t)KBD_KEY_LEFT);
+            break;
+        case 0x4D:
+            kbd_queue_char((uint8_t)KBD_KEY_RIGHT);
+            break;
+        default:
+            break;
+        }
+        return;
+    }
 
     /* Track shift state (left/right). */
     if (scancode == 0x2A || scancode == 0x36) { /* press */
@@ -168,11 +212,7 @@ static void keyboard_handle_irq1(void) {
     }
 
     /* Queue character for polling readers */
-    uint32_t next_head = (kbd_char_head + 1) % KBD_BUF_SIZE;
-    if (next_head != kbd_char_tail) { /* drop if full */
-        kbd_char_buffer[kbd_char_head] = (uint8_t)ch;
-        kbd_char_head = next_head;
-    }
+    kbd_queue_char((uint8_t)ch);
 
     if (kbd_echo) {
         char out[2] = { ch, '\0' };
@@ -180,6 +220,7 @@ static void keyboard_handle_irq1(void) {
     }
 }
 
+// Main IRQ dispatcher for PIT and keyboard
 void irq_handler_c(uint32_t irq_no) {
     if (irq_no == 0) {
         pit_on_irq0();

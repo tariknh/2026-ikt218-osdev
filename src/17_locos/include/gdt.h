@@ -9,6 +9,7 @@ Description: This file contains the definitions and function declarations for th
 
 #include <libc/stdint.h>
 
+// Build and load the GDT
 void gdt_init(void);
 
 #endif
