@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "pit.h"
 #include "song.h"
+#include "snake.h"
 
 extern uint32_t end; // This is defined in arch/i386/linker.ld
 
@@ -46,13 +47,7 @@ void kmain(uint32_t magic, void* mb_info_addr) {
     printf("Enabling interrupts...\n");
     __asm__ __volatile__("sti");
 
-    printf("\n=== OS Ready ===\n");
-    printf("Type on your keyboard. Characters will appear below:\n");
-    printf("----------------------------------------\n");
-    printf("Playing a song...\n");
-    play_music();
-    
-    while (1) {
-        __asm__ __volatile__("hlt");
-    }
+    printf("\n=== Starting Snake ===\n");
+    terminal_clear();
+    snake_start();
 }

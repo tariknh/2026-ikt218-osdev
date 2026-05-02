@@ -11,6 +11,10 @@ void pit_handler() {
     tick_count++; // Increment the tickcount on the PIT
 }
 
+uint32_t get_tick_count(void) {
+    return tick_count;
+}
+
 void pit_init() {
     uint16_t divisor = 1193180 / PIT_FREQUENCY; // Defining the divisor for the desired frequency
 

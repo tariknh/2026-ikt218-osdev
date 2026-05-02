@@ -25,6 +25,10 @@ typedef struct {
 SongPlayer* create_song_player();
 
 void play_music(void);
+void play_sound(uint32_t frequency);
+void stop_sound(void);
+void enable_speaker(void);
+void disable_speaker(void);
 
 static Note music_1[] = {
     {E5, 250}, {R, 125}, {E5, 125}, {R, 125}, {E5, 125}, {R, 125},

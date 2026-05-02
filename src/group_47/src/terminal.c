@@ -126,3 +126,24 @@ void print(const char* str) {
     printf(str);
 }
 
+// Function to draw objects at specific coordiantes and specified color
+void terminal_draw_entry(char c, uint8_t color, size_t x, size_t y) {
+    if (x >= VGA_WIDTH || y >= VGA_HEIGHT) return;
+
+    const size_t index = y * VGA_WIDTH + x;
+    terminal_buffer[index] = (uint16_t)c | (uint16_t)color << 8;
+}
+
+// Function to clear the terminal screen 
+void terminal_clear() {
+    for (size_t y = 0; y < VGA_HEIGHT; y++) {
+        for (size_t x = 0; x < VGA_WIDTH; x++) {
+            const size_t index = y * VGA_WIDTH + x;
+            terminal_buffer[index] = (uint16_t)' ' | (uint16_t)terminal_color << 8;
+        }
+    }
+
+    terminal_row = 0;
+    terminal_column = 0;
+    update_hardware_cursor();
+}

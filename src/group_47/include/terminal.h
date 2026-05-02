@@ -19,4 +19,8 @@ void print_hex(uint32_t num);
 
 void update_hardware_cursor(void);
 
+void terminal_clear(void);
+
+void terminal_draw_entry(char c, uint8_t color, size_t x, size_t y);
+
 #endif
