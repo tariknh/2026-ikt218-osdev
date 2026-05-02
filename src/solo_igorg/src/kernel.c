@@ -74,21 +74,17 @@ void main(void)
     gdt_initialize();
 
     terminal_initialize();
-    terminal_write("IRQ test\n");
+    terminal_write("Assignment 3: Keyboard logger\n");
 
     idt_initialize();
     irq_initialize();
 
-    terminal_write("Triggering IRQ0 vector 0x20...\n");
-    __asm__ volatile ("int $0x20");
+    terminal_write("Type on the keyboard:\n");
 
-    terminal_write("Triggering IRQ1 vector 0x21...\n");
-    __asm__ volatile ("int $0x21");
-
-    terminal_write("Triggering IRQ15 vector 0x2F...\n");
-    __asm__ volatile ("int $0x2F");
-
-    terminal_write("IRQ test completed\n");
+    /*
+     * Enable hardware interrupts so IRQ1 can be triggered by keyboard input.
+     */
+    __asm__ volatile ("sti");
 
     while (1) {
         __asm__ volatile ("hlt");

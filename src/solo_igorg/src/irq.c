@@ -3,6 +3,7 @@
 #include <io.h>
 #include <terminal.h>
 #include <libc/stdint.h>
+#include <keyboard.h>
 
 /*
  * 8259 PIC ports.
@@ -86,11 +87,14 @@ static void pic_remap(void)
     outb(PIC2_DATA, ICW4_8086);
     io_wait();
 
-    /*
-     * Restores previous masks.
-     */
-    outb(PIC1_DATA, master_mask);
-    outb(PIC2_DATA, slave_mask);
+   /*
+    * Enables only keyboard interrupt.
+    */
+    (void)master_mask;
+    (void)slave_mask;
+
+    outb(PIC1_DATA, 0xFD);
+    outb(PIC2_DATA, 0xFF);
 }
 
 /*
@@ -136,6 +140,15 @@ void irq_initialize(void)
  */
 void irq_handler(uint32_t irq_number)
 {
+    /*
+     * IRQ1 is PS/2 keyboard interrupt.
+     */
+    if (irq_number == 1) {
+        keyboard_handle_irq();
+        pic_send_eoi(irq_number);
+        return;
+    }
+
     terminal_write("IRQ triggered: ");
 
     if (irq_number < 10) {
