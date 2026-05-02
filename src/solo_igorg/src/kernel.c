@@ -1,6 +1,8 @@
 #include <libc/stddef.h>
 #include <libc/stdint.h>
 #include <gdt.h>
+#include <terminal.h>
+#include <idt.h>
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
@@ -71,7 +73,20 @@ void main(void)
     gdt_initialize();
 
     terminal_initialize();
-    terminal_write("Hello World");
+    terminal_write("Interrupt test\n");
+
+    idt_initialize();
+
+    terminal_write("Triggering interrupt 0x00...\n");
+    __asm__ volatile ("int $0x00");
+
+    terminal_write("Triggering interrupt 0x03...\n");
+    __asm__ volatile ("int $0x03");
+
+    terminal_write("Triggering interrupt 0x04...\n");
+    __asm__ volatile ("int $0x04");
+
+    terminal_write("Interrupt test completed\n");
 
     while (1) {
         __asm__ volatile ("hlt");
