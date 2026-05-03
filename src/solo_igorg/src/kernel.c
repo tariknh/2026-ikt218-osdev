@@ -4,6 +4,14 @@
 #include <terminal.h>
 #include <idt.h>
 #include <irq.h>
+#include <memory.h>
+#include <paging.h>
+#include <pit.h>
+
+/*
+ * The end of kernel image in memory.
+ */
+extern uint32_t end;
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
@@ -69,86 +77,114 @@ void terminal_write(const char* data)
     }
 }
 
+void terminal_write_dec(uint32_t value)
+{
+    char buffer[11];
+    int index = 0;
+
+    if (value == 0) {
+        terminal_putchar('0');
+        return;
+    }
+
+    while (value > 0 && index < 10) {
+        buffer[index] = '0' + (value % 10);
+        value /= 10;
+        index++;
+    }
+
+    while (index > 0) {
+        index--;
+        terminal_putchar(buffer[index]);
+    }
+}
+
+void terminal_write_hex(uint32_t value)
+{
+    const char* hex_digits = "0123456789ABCDEF";
+
+    terminal_write("0x");
+
+    for (int shift = 28; shift >= 0; shift -= 4) {
+        uint8_t digit = (uint8_t)((value >> shift) & 0xF);
+        terminal_putchar(hex_digits[digit]);
+    }
+}
+
 void main(void)
 {
-    /*
-     * Initializes GDT before using interrupts
-     */
     gdt_initialize();
-
-    /*
-     * Initializes terminal output so kernel can print out status messages.
-     */
     terminal_initialize();
 
     terminal_write("UiA OS\n");
-    terminal_write("Assignment 2: Hello World output works\n");
-    terminal_write("Hello World\n\n");
+    terminal_write("Memory and PIT test\n\n");
 
-    /*
-     * Initializes and loads IDT.
-     */
-    terminal_write("Assignment 3: Initializing IDT...\n");
     idt_initialize();
-    terminal_write("IDT initialized\n");
-
-    /*
-     * Software interrupt test, used to verify that IDT and ISR stubs work.
-     */
-    terminal_write("\nTesting software interrupts...\n");
-
-    terminal_write("Triggering interrupt 0x00...\n");
-    __asm__ volatile ("int $0x00");
-
-    terminal_write("Triggering interrupt 0x03...\n");
-    __asm__ volatile ("int $0x03");
-
-    terminal_write("Triggering interrupt 0x04...\n");
-    __asm__ volatile ("int $0x04");
-
-    terminal_write("Software interrupt test completed\n");
-
-    /*
-     * Initializes IRQ support.
-     * Remaps PIC and registers IRQ0-IRQ15 in IDT.
-     */
-    terminal_write("\nInitializing IRQ support...\n");
     irq_initialize();
-    terminal_write("IRQ support initialized\n");
+
+    terminal_write("Initializing kernel memory...\n");
+    init_kernel_memory(&end);
+
+    terminal_write("Initializing paging...\n");
+    init_paging();
+
+    terminal_write("\nMemory layout before malloc:\n");
+    print_memory_layout();
+
+    terminal_write("\nTesting malloc:\n");
+
+    void* memory1 = malloc(12345);
+    void* memory2 = malloc(54321);
+    void* memory3 = malloc(13331);
+
+    terminal_write("  malloc(12345): ");
+    terminal_write_hex((uint32_t)memory1);
+    terminal_putchar('\n');
+
+    terminal_write("  malloc(54321): ");
+    terminal_write_hex((uint32_t)memory2);
+    terminal_putchar('\n');
+
+    terminal_write("  malloc(13331): ");
+    terminal_write_hex((uint32_t)memory3);
+    terminal_putchar('\n');
+
+    terminal_write("\nMemory layout after malloc:\n");
+    print_memory_layout();
+
+    terminal_write("\nInitializing PIT...\n");
+    init_pit();
 
     /*
-     * IRQ vector test.
-     * These software-triggered IRQ vectors verify that the IRQ stubs are
-     * registered correctly after PIC remapping.
-     * Comment these out when testing real keyboard IRQ1 handler, because
-     * IRQ1 test does not come from actual keyboard hardware.
+     * Enables hardware interrupts so IRQ0 from PIT can update ticks.
      */
-    
-    terminal_write("\nTesting IRQ vectors...\n");
-
-    terminal_write("Triggering IRQ0 vector 0x20...\n");
-    __asm__ volatile ("int $0x20");
-
-    terminal_write("Triggering IRQ1 vector 0x21...\n");
-    __asm__ volatile ("int $0x21");
-
-    terminal_write("Triggering IRQ15 vector 0x2F...\n");
-    __asm__ volatile ("int $0x2F");
-
-    terminal_write("IRQ vector test completed\n");
-
-    /*
-     * Enables hardware interrupts so that the keyboard can generate IRQ1.
-     */
-    terminal_write("\nKeyboard logger ready. Type on keyboard:\n");
-
     __asm__ volatile ("sti");
 
-    /*
-     * Halt CPU while waiting for interrupts.
-     * Keyboard input will wake the CPU through IRQ1.
-     */
+    terminal_write("\nTesting PIT sleep functions:\n");
+
+    uint32_t counter = 0;
+
     while (1) {
-        __asm__ volatile ("hlt");
+        terminal_write("[");
+        terminal_write_dec(counter);
+        terminal_write("] Sleeping with busy-waiting...\n");
+
+        sleep_busy(1000);
+
+        terminal_write("[");
+        terminal_write_dec(counter);
+        terminal_write("] Slept using busy-waiting.\n");
+        counter++;
+
+        terminal_write("[");
+        terminal_write_dec(counter);
+        terminal_write("] Sleeping with interrupts...\n");
+
+        sleep_interrupt(1000);
+
+        terminal_write("[");
+        terminal_write_dec(counter);
+        terminal_write("] Slept using interrupts.\n");
+        counter++;
     }
 }

@@ -4,6 +4,7 @@
 #include <terminal.h>
 #include <libc/stdint.h>
 #include <keyboard.h>
+#include <pit.h>
 
 /*
  * 8259 PIC ports.
@@ -88,12 +89,17 @@ static void pic_remap(void)
     io_wait();
 
    /*
-    * Enables only keyboard interrupt.
+    * Enable IRQ0 and IRQ1 on the master PIC.
+    * 0xFC = 11111100b
+    * bit 0 = IRQ0 enabled
+    * bit 1 = IRQ1 enabled
+    * all other master IRQs disabled
+    * 0xFF disables all IRQs on the slave PIC.
     */
     (void)master_mask;
     (void)slave_mask;
 
-    outb(PIC1_DATA, 0xFD);
+    outb(PIC1_DATA, 0xFC);
     outb(PIC2_DATA, 0xFF);
 }
 
@@ -135,13 +141,19 @@ void irq_initialize(void)
     idt_set_gate(0x2F, (uint32_t)irq15, KERNEL_CODE_SELECTOR, IDT_INTERRUPT_GATE);
 }
 
-/*
- * Common IRQ handler.
- */
 void irq_handler(uint32_t irq_number)
 {
     /*
-     * IRQ1 is PS/2 keyboard interrupt.
+     * IRQ0 - PIT/system timer.
+     */
+    if (irq_number == 0) {
+        pit_handle_irq();
+        pic_send_eoi(irq_number);
+        return;
+    }
+
+    /*
+     * IRQ1 - PS/2 keyboard interrupt.
      */
     if (irq_number == 1) {
         keyboard_handle_irq();
