@@ -8,6 +8,7 @@
 #include <paging.h>
 #include <pit.h>
 #include <song_player.h>
+#include <pong.h>
 
 /*
  * The end of kernel image in memory.
@@ -43,6 +44,19 @@ void terminal_initialize(void)
     }
 }
 
+void terminal_clear(void)
+{
+    terminal_row = 0;
+    terminal_column = 0;
+
+    for (size_t y = 0; y < VGA_HEIGHT; y++) {
+        for (size_t x = 0; x < VGA_WIDTH; x++) {
+            const size_t index = y * VGA_WIDTH + x;
+            VGA_BUFFER[index] = vga_entry(' ', terminal_color);
+        }
+    }
+}
+
 void terminal_putchar(char character)
 {
     if (character == '\n') {
@@ -69,6 +83,20 @@ void terminal_putchar(char character)
             terminal_row = 0;
         }
     }
+}
+
+/*
+ * Screen drawing for Pong game
+ */
+
+void terminal_putchar_at(char character, uint8_t color, size_t x, size_t y)
+{
+    if (x >= VGA_WIDTH || y >= VGA_HEIGHT) {
+        return;
+    }
+
+    const size_t index = y * VGA_WIDTH + x;
+    VGA_BUFFER[index] = vga_entry(character, color);
 }
 
 void terminal_write(const char* data)
@@ -118,7 +146,7 @@ void main(void)
     terminal_initialize();
 
     terminal_write("UiA OS\n");
-    terminal_write("PC speaker music player\n\n");
+    terminal_write("Assignment 6: OS Pong\n\n");
 
     idt_initialize();
     irq_initialize();
@@ -132,16 +160,12 @@ void main(void)
     terminal_write("Initializing PIT...\n");
     init_pit();
 
-    /*
-     * Enables hardware interrupts.
-     * PIT IRQ0 must be active because play_song_impl() uses sleep_interrupt().
-     */
     __asm__ volatile ("sti");
 
-    terminal_write("\nStarting music player...\n");
-    play_music();
+    terminal_write("\nStarting Pong...\n");
+    sleep_interrupt(1000);
 
-    terminal_write("\nMusic player test completed.\n");
+    pong_start();
 
     while (1) {
         __asm__ volatile ("hlt");

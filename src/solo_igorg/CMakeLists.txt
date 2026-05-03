@@ -73,6 +73,7 @@ add_executable(uiaos-kernel
     src/paging.c
     src/pit.c
     src/song_player.c
+    src/pong.c
 )
 
 # Include directories for the kernel target

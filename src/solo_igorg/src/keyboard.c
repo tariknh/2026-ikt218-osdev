@@ -11,6 +11,8 @@
  */
 static char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
 static uint32_t keyboard_buffer_index = 0;
+static volatile char keyboard_last_key = 0;
+static bool keyboard_echo_enabled = true;
 
 /*
  * Handles only simple key presses without Shift, Ctrl, Alt, Caps Lock, or extended scancodes.
@@ -40,6 +42,18 @@ static void keyboard_store_char(char character)
     }
 }
 
+char keyboard_get_last_key(void)
+{
+    char key = keyboard_last_key;
+    keyboard_last_key = 0;
+    return key;
+}
+
+void keyboard_set_echo(bool enabled)
+{
+    keyboard_echo_enabled = enabled;
+}
+
 void keyboard_handle_irq(void)
 {
     uint8_t scancode = inb(KEYBOARD_DATA_PORT);
@@ -61,5 +75,9 @@ void keyboard_handle_irq(void)
     }
 
     keyboard_store_char(character);
-    terminal_putchar(character);
+    keyboard_last_key = character;
+
+    if (keyboard_echo_enabled) {
+        terminal_putchar(character);
+    }
 }
