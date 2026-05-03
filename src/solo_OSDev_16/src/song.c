@@ -56,3 +56,32 @@ void play_song(Song *song){
     play_song_impl(song);
 }
 
+Song music_1 = {
+    music_1_notes,
+    sizeof(music_1_notes) / sizeof(Note)
+};
+
+Song music_2 = {
+    music_2_notes,
+    sizeof(music_2_notes) / sizeof(Note)
+};
+
+Song music_3 = {
+    music_3_notes,
+    sizeof(music_3_notes) / sizeof(Note)
+};
+
+Song music_4 = {
+    music_4_notes,
+    sizeof(music_4_notes) / sizeof(Note)
+};
+
+Song music_5 = {
+    music_5_notes,
+    sizeof(music_5_notes) / sizeof(Note)
+};
+
+Song music_6 = {
+    music_6_notes,
+    sizeof(music_6_notes) / sizeof(Note)
+};

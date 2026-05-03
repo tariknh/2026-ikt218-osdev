@@ -37,4 +37,7 @@ void irq13_handler(void);
 void irq14_handler(void);
 void irq15_handler(void);
 
+// IRQ Getters
+uint32_t get_irq1_count();
+
 #endif

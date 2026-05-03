@@ -9,6 +9,7 @@
 
 #include <libc/stdint.h> /* Include standard integer types */
 #include <libc/stddef.h> /* Include standard definitions */
+#include <libc/stdbool.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -46,6 +47,28 @@ extern void* memset16 (void *ptr, uint16_t value, size_t num); /* Sets num bytes
 /* Other helper functions*/
 void print_memory_layout(); // Printing heap begin, heap end, last allocated and memory used.
 void kernel_main();        // Test C++ allocation using overloaded new.
+
+// Heap getter functions for memory screen
+uint32_t memory_get_heap_start();
+uint32_t memory_get_heap_current();
+uint32_t memory_get_heap_end();
+uint32_t memory_get_heap_used();
+uint32_t memory_get_heap_remaining();
+
+// Kernel getter functions for memory screen
+uint32_t memory_get_kernel_start();
+uint32_t memory_get_kernel_end();
+uint32_t memory_get_kernel_size();
+
+// Getters for monitor paging screen
+bool paging_is_enabled();
+uint32_t paging_get_page_size();
+uint32_t paging_get_mapped_start();
+uint32_t paging_get_mapped_end();
+uint32_t paging_get_cr3();
+uint32_t paging_get_page_directory_address();
+uint32_t paging_get_first_page_table_address();
+uint32_t paging_get_last_page_table_address();
 
 #ifdef __cplusplus
 }
