@@ -1,0 +1,25 @@
+{
+    "cmake.buildDirectory": "${workspaceFolder}/build/11_OSDev",
+    "cmake.sourceDirectory": "${workspaceFolder}/src/11_OSDev",
+    "cmake.defaultKit": "GCC 13.2.0 i686-elf (Cross Compiler)",
+    "cmake.configureArgs": [
+        "-DCMAKE_C_COMPILER=/usr/local/bin/i686-elf-gcc",
+        "-DCMAKE_CXX_COMPILER=/usr/local/bin/i686-elf-g++"
+    ],
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "cstddef": "cpp",
+        "*.tcc": "cpp",
+        "*.ipp": "cpp",
+        "stdbool.h": "c",
+        "stddef.h": "c",
+        "stdio.h": "c",
+        "stdint.h": "c",
+        "system.h": "c",
+        "multiboot2.h": "c",
+        "interrupts.h": "c",
+        "memory.h": "c",
+        "limits.h": "c"
+    }
+
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "name": "GCC 13.2.0 i686-elf (Cross Compiler)",
+    "compilers": {
+      "C": "/usr/local/bin/i686-elf-gcc",
+      "CXX": "/usr/local/bin/i686-elf-g++"
+    },
+    "isTrusted": true
+  }
+]
