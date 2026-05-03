@@ -146,7 +146,7 @@ void main(void)
     terminal_initialize();
 
     terminal_write("UiA OS\n");
-    terminal_write("Assignment 6: OS Pong\n\n");
+    terminal_write("Pong game\n\n");
 
     idt_initialize();
     irq_initialize();
