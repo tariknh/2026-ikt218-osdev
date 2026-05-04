@@ -26,8 +26,8 @@ include(FetchContent)
 # UiAOS: Variables
 ########################################
 set(OS_ARCH_TARGET "i386")  # x86_64 
-set(OS_NAME "UiA Operating System")
-set(OS_KERNEL_NAME "uiaos")
+set(OS_NAME "simoncitodk-os")
+set(OS_KERNEL_NAME "simoncitodk-os")
 set(OS_KERNEL_BINARY "kernel.bin")
 set(OS_KERNEL_IMAGE "kernel.iso")
 
@@ -61,6 +61,7 @@ add_executable(uiaos-kernel
         # src/multiboot2.asm # TODO: Add multiboot2 support
         src/multiboot2.asm
         src/kernel.c
+        src/final_demo.c
         src/matrix_rain.c
         src/gdt.c
         src/gdt_flush.asm

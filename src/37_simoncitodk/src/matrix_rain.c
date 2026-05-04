@@ -51,8 +51,8 @@ static void matrix_draw_status(uint32_t frame_delay_ms)
     matrix_clear_row(1);
     matrix_clear_row(2);
 
-    matrix_write_text_at("Assignment 6: Matrix Rain", 0, MATRIX_STATUS_ROW, 0x0A);
-    matrix_write_text_at("Keyboard speed: 1 slow | 2 normal | 3 fast", 0, 1, 0x07);
+    matrix_write_text_at("Matrix Rain", 0, MATRIX_STATUS_ROW, 0x0A);
+    matrix_write_text_at("Keyboard: 1 slow | 2 normal | 3 fast | q quit", 0, 1, 0x07);
 
     if (frame_delay_ms == MATRIX_SPEED_SLOW_MS) {
         matrix_write_text_at("Current speed: slow", 0, 2, 0x07);
@@ -61,6 +61,11 @@ static void matrix_draw_status(uint32_t frame_delay_ms)
     } else {
         matrix_write_text_at("Current speed: normal", 0, 2, 0x07);
     }
+}
+
+static int matrix_should_quit(void)
+{
+    return keyboard_get_last_key() == 'q';
 }
 
 static uint32_t matrix_update_speed_from_keyboard(uint32_t current_delay_ms)
@@ -86,7 +91,7 @@ static void matrix_show_startup_status(void)
 {
     terminal_clear();
 
-    matrix_write_text_at("Assignment 6: Matrix Rain", 0, MATRIX_STATUS_ROW, 0x0A);
+    matrix_write_text_at("Matrix Rain", 0, MATRIX_STATUS_ROW, 0x0A);
     matrix_write_text_at("GDT IDT PIC Memory Paging PIT VGA Keyboard: OK", 0, 1, 0x07);
     matrix_write_text_at("Starting timed VGA animation...", 0, 2, 0x07);
 
@@ -108,6 +113,10 @@ void matrix_rain_demo(void)
     }
 
     for (;;) {
+        if (matrix_should_quit()) {
+            return;
+        }
+
         frame_delay_ms = matrix_update_speed_from_keyboard(frame_delay_ms);
         matrix_draw_status(frame_delay_ms);
 

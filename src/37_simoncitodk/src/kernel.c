@@ -1,5 +1,6 @@
 #include "gdt.h"
 #include "idt.h"
+#include "final_demo.h"
 #include "matrix_rain.h"
 #include "memory.h"
 #include "pic.h"
@@ -21,5 +22,7 @@ void kernel_main(void)
 
     asm volatile("sti");
 
+    final_demo_run();
     matrix_rain_demo();
+    final_demo_show_complete();
 }
