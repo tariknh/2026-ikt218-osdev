@@ -2,52 +2,38 @@
 KERNEL_PATH=$1
 DISK_PATH=$2
 
-# Set DEBUG=1 to start QEMU paused with a gdb stub on tcp::1234.
-DEBUG=${DEBUG:-0}
-
-# Prefer WSLg PulseAudio when available; fall back to recording PC speaker to a WAV.
-if [ -z "${PULSE_SERVER:-}" ] && [ -S "/mnt/wslg/PulseServer" ]; then
-    PULSE_SERVER="/mnt/wslg/PulseServer"
-    export PULSE_SERVER
-fi
-
-if [ -n "${PULSE_SERVER:-}" ]; then
-    AUDIO_ARGS=( -audiodev "pa,id=snd0,server=${PULSE_SERVER}" -machine "pcspk-audiodev=snd0" )
-    echo "Using PulseAudio: ${PULSE_SERVER}"
-else
-    mkdir -p build
-    AUDIO_ARGS=( -audiodev "wav,id=snd0,path=build/pcspk.wav" -machine "pcspk-audiodev=snd0" )
-    echo "Recording PC speaker to build/pcspk.wav"
-fi
-
-QEMU_ARGS=(
-    -m 64
-    -boot d
-    -cdrom "$KERNEL_PATH"
-    -drive "file=$DISK_PATH,format=raw,if=ide"
-    -display gtk
-    -serial stdio
-    "${AUDIO_ARGS[@]}"
-)
-
-if [ "$DEBUG" = "1" ]; then
-    echo "Starting QEMU paused for gdb on tcp::1234..."
-    QEMU_ARGS+=( -S -gdb tcp::1234 )
-else
-    echo "Starting QEMU..."
-fi
-
-# Forward Ctrl-C to QEMU and wait for it to exit.
-qemu-system-i386 "${QEMU_ARGS[@]}" &
+# Start QEMU in the background
+echo "Starting QEMU"
+qemu-system-i386 -S -gdb tcp::1234 -boot d -cdrom $KERNEL_PATH -hdb $DISK_PATH -m 64 -audiodev sdl,id=sdl1,out.buffer-length=40000 -machine pcspk-audiodev=sdl1 -serial pty &
 QEMU_PID=$!
 
-cleanup() {
-    if kill -0 "$QEMU_PID" 2>/dev/null; then
-        echo "Stopping QEMU..."
-        kill "$QEMU_PID" 2>/dev/null
-    fi
+# Function to check if gdb is running
+is_gdb_running() {
+    pgrep -f "gdb-multiarch" > /dev/null
 }
+
+# Function to handle termination signals
+cleanup() {
+    echo "Stopping QEMU..."
+    kill $QEMU_PID
+    exit 0
+}
+
+# Trap SIGINT and SIGTERM signals
 trap cleanup SIGINT SIGTERM
 
-wait "$QEMU_PID"
+# Wait for gdb to start
+echo "Waiting for gdb to start..."
+while ! is_gdb_running; do
+    sleep 1
+done
+echo "gdb started."
 
+# Wait for gdb to stop
+echo "Monitoring gdb connection..."
+while is_gdb_running; do
+    sleep 1
+done
+
+# Cleanup after gdb stops
+cleanup
