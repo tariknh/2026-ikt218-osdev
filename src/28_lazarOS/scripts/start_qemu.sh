@@ -5,6 +5,7 @@ DISK_PATH=$2
 # Start QEMU in the background
 echo "Starting QEMU"
 qemu-system-i386 -S -gdb tcp::1234 -boot d -cdrom $KERNEL_PATH -hdb $DISK_PATH -m 64 -audiodev sdl,id=sdl1,out.buffer-length=40000 -machine pcspk-audiodev=sdl1 -serial pty &
+# TO RUN IN DEV CONTAINER / curses: qemu-system-i386 -boot d -cdrom build/kernel.iso -drive file=build/disk.iso,format=raw,if=ide -display curses -serial stdio
 QEMU_PID=$!
 
 # Function to check if gdb is running
