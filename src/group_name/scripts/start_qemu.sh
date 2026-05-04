@@ -2,9 +2,6 @@
 KERNEL_PATH=$1
 DISK_PATH=$2
 
-# lowers the volume to avoid blasting at 100%
-pactl set-sink-volume @DEFAULT_SINK@ 5%
-
 # Start QEMU in the background
 echo "Starting QEMU"
 qemu-system-i386 -S -gdb tcp::1234 \
