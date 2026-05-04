@@ -81,7 +81,7 @@ void printf(const char* data) { // Simple implementation of printf that only sup
         terminal_putchar(data[i]);
 }
 
-void print_int(uint32_t num) { // Fuction to print an interger to the terminal 
+void print_int(uint32_t num) { // Function to print an integer to the terminal
     char buffer[32];
     char *ptr = buffer;
     
@@ -102,8 +102,48 @@ void print_int(uint32_t num) { // Fuction to print an interger to the terminal
     }
 }
 
+void print_hex(uint32_t num) {
+    char hex_chars[] = "0123456789ABCDEF";
+    char buffer[10]; // "0x" + 8 chars for 32-bit + null
+    
+    terminal_putchar('0');
+    terminal_putchar('x');
+
+    if (num == 0) {
+        terminal_putchar('0');
+        return;
+    }
+
+    // Process from right to left (8 characters for a 32-bit uint32_t)
+    for (int i = 7; i >= 0; i--) {
+        int nibble = (num >> (i * 4)) & 0xF;
+        terminal_putchar(hex_chars[nibble]);
+    }
+}
+
 // Alias for printf (for consistency)
 void print(const char* str) {
     printf(str);
 }
 
+// Function to draw objects at specific coordiantes and specified color
+void terminal_draw_entry(char c, uint8_t color, size_t x, size_t y) {
+    if (x >= VGA_WIDTH || y >= VGA_HEIGHT) return;
+
+    const size_t index = y * VGA_WIDTH + x;
+    terminal_buffer[index] = (uint16_t)c | (uint16_t)color << 8;
+}
+
+// Function to clear the terminal screen 
+void terminal_clear() {
+    for (size_t y = 0; y < VGA_HEIGHT; y++) {
+        for (size_t x = 0; x < VGA_WIDTH; x++) {
+            const size_t index = y * VGA_WIDTH + x;
+            terminal_buffer[index] = (uint16_t)' ' | (uint16_t)terminal_color << 8;
+        }
+    }
+
+    terminal_row = 0;
+    terminal_column = 0;
+    update_hardware_cursor();
+}
