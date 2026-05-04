@@ -1,15 +1,17 @@
 #include "idt.h"
 #include "pic.h"
+#include "pit.h"
 #include "ports.h"
 #include "terminal.h"
 #include <libc/stdint.h>
-#include "pit.h"
 
 #define KEYBOARD_DATA_PORT 0x60
 #define KEY_RELEASED_MASK 0x80
 
 static struct idt_entry idt[IDT_ENTRIES];
 struct idt_ptr idtp;
+
+static volatile char keyboard_last_key = 0;
 
 static const char scancode_to_ascii[128] = {
     0,  27, '1', '2', '3', '4', '5', '6',
@@ -55,6 +57,11 @@ static void idt_set_gate(uint8_t number, uint32_t base, uint16_t selector, uint8
     idt[number].flags = flags;
 }
 
+char keyboard_get_last_key(void)
+{
+    return keyboard_last_key;
+}
+
 static void keyboard_handle_scancode(uint8_t scancode)
 {
     if ((scancode & KEY_RELEASED_MASK) != 0) {
@@ -64,11 +71,7 @@ static void keyboard_handle_scancode(uint8_t scancode)
     char character = scancode_to_ascii[scancode];
 
     if (character != 0) {
-        char text[2];
-        text[0] = character;
-        text[1] = '\0';
-
-        terminal_write(text);
+        keyboard_last_key = character;
     }
 }
 
@@ -129,5 +132,3 @@ void irq_handler(uint32_t irq_number)
 
     pic_send_eoi((uint8_t)irq_number);
 }
-
-

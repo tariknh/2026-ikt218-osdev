@@ -26,8 +26,8 @@ include(FetchContent)
 # UiAOS: Variables
 ########################################
 set(OS_ARCH_TARGET "i386")  # x86_64 
-set(OS_NAME "UiA Operating System")
-set(OS_KERNEL_NAME "uiaos")
+set(OS_NAME "simoncitodk-os")
+set(OS_KERNEL_NAME "simoncitodk-os")
 set(OS_KERNEL_BINARY "kernel.bin")
 set(OS_KERNEL_IMAGE "kernel.iso")
 
@@ -57,20 +57,23 @@ set(CMAKE_ASM_NASM_COMPILE_OBJECT
 set(OS_KERNEL_LINKER "${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${OS_ARCH_TARGET}/linker.ld")
 
 # Add executable target for the kernel
-add_executable(uiaos-kernel 
-	# src/multiboot2.asm # TODO: Add multiboot2 support
-    src/multiboot2.asm
-	src/kernel.c
-	src/gdt.c
-	src/gdt_flush.asm
-	src/terminal.c
-	src/idt.c
-	src/idt_flush.asm
-	src/isr.asm
-	src/pic.c
-	src/memory.c
-	src/memory_new.cpp
-	src/pit.c
+add_executable(uiaos-kernel
+        # src/multiboot2.asm # TODO: Add multiboot2 support
+        src/multiboot2.asm
+        src/kernel.c
+        src/final_demo.c
+        src/matrix_rain.c
+        src/gdt.c
+        src/gdt_flush.asm
+        src/terminal.c
+        src/idt.c
+        src/idt_flush.asm
+        src/isr.asm
+        src/pic.c
+        src/memory.c
+        src/memory_new.cpp
+        src/pit.c
+        src/song_player.c
 )
 
 # Include directories for the kernel target

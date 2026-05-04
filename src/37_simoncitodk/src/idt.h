@@ -36,5 +36,6 @@ struct idt_ptr {
 } __attribute__((packed));
 
 void idt_init(void);
+char keyboard_get_last_key(void);
 
 #endif
