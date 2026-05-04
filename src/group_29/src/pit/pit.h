@@ -1,0 +1,48 @@
+#pragma once
+
+#ifndef PIT_H
+#define PIT_H
+
+#include "libc/stdint.h"
+#include "../io/io.h"
+
+struct interrupt_frame;
+
+// PIT ports
+#define PIT_CMD_PORT 0x43
+#define PIT_CHANNEL0_PORT 0x40
+#define PIT_CHANNEL1_PORT 0x41
+#define PIT_CHANNEL2_PORT 0x42
+#define PC_SPEAKER_PORT 0x61
+
+// PIC ports (FIXED: data port is 0x21, NOT 0x20)
+#define PIC1_CMD_PORT 0x20
+#define PIC1_DATA_PORT 0x21
+#define PIC_EOI 0x20
+
+// PIT config
+#define PIT_DEFAULT_DIVISOR 0x4E20
+#define PIT_BASE_FREQUENCY 1193180
+#define TARGET_FREQUENCY 1000
+#define DIVIDER (PIT_BASE_FREQUENCY / TARGET_FREQUENCY)
+#define TICKS_PER_MS (TARGET_FREQUENCY / TARGET_FREQUENCY)
+
+void init_pit();
+
+/// @brief Sleep function, checks if enough time has passed at every interrupt that fires
+/// @param milliseconds 
+void sleep_interrupt(uint32_t milliseconds);
+
+/// @brief Sleep function, repeatedly checks get_current_tick() to see if enough time has passed
+/// @param milliseconds 
+void sleep_busy(uint32_t milliseconds);
+
+/// @brief Get how many ticks have passed. Incremented every time the PIT fiires.
+/// @return pit_ticks, which is incremented at every PIT interrupt by pit_irq_handler
+uint32_t get_current_tick(void);
+
+/// @brief IRQ for the PIT, increments pit_ticks
+/// @param frame 
+void pit_irq_handler(struct interrupt_frame* frame);
+
+#endif

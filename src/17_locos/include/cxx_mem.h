@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+// Small test for C++ new and delete
 bool cpp_new_delete_test(void);
 
 #ifdef __cplusplus

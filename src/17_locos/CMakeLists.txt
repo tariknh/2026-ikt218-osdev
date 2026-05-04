@@ -72,6 +72,11 @@ add_executable(locos-kernel
 	src/cxx_mem.cpp
 	src/memory.c
 	src/pcspk.c
+	src/wire3d.c
+	src/shell.c
+	src/scroll.c
+	src/piano.c
+	src/snake.c
 )
 
 # Include directories for the kernel target

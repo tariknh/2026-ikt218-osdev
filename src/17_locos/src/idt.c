@@ -1,7 +1,9 @@
 #include "idt.h" // IDT types and init function.
 #include "irq.h" // IRQ setup and IRQ handler.
 
+// One table entry per interrupt vector
 static struct idt_entry idt[256]; //Table with 256 interrupt entries.
+// IDTR data passed to lidt
 static struct idt_ptr   idtp; // Pointer used by lidt.
 
 extern void idt_load(uint32_t); // Assembly code that runs lidt.
@@ -27,6 +29,7 @@ extern void irq14(void); // IRQ 14 stub.
 extern void irq15(void);           // IRQ 15 stub.
 extern void isr_ignore(void); // Default handler for unused vectors.
 
+// Fill one IDT gate entry
 static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {
     idt[num].base_low  = (uint16_t)(base & 0xFFFF);  // Low half of the handler address.
     idt[num].base_high = (uint16_t)((base >> 16) & 0xFFFF); //High half of the handler address
@@ -35,6 +38,7 @@ static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags
     idt[num].flags     = flags; // Gate type and present bit
 }
 
+// Build the whole IDT and load it
 void idt_init(void) {
     idtp.limit = (uint16_t)(sizeof(struct idt_entry) * 256 - 1); // Size of the full table
     idtp.base  = (uint32_t)&idt; // Address of the table.

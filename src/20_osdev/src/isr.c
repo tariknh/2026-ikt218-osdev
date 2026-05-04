@@ -20,17 +20,17 @@ static void print_at(const char *text, int row)
 
 void isr0_handler(void)
 {
-    print_at("ISR 0 triggered", 1);
+    printf("ISR 0 triggered\n");
 }
 
 void isr1_handler(void)
 {
-    print_at("ISR 1 triggered", 2);
+    printf("ISR 1 triggered\n");
 }
 
 void isr2_handler(void)
 {
-    print_at("ISR 2 triggered", 3);
+    printf("ISR 2 triggered\n");
 }
 
 void isr_init(void)

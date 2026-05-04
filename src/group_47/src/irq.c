@@ -3,6 +3,7 @@
 #include "idt.h"
 #include "terminal.h"
 #include "keyboard.h"
+#include "pit.h"
 
 // This file contains the implementation of the IRQ (Interrupt Request) handling, which is responsible for managing hardware interrupts 
 //from devices like the keyboard, timer, and more. The IRQ system allows us to respond to hardware events in a timely manner, 
@@ -70,8 +71,11 @@ void irq_install() {
 // This is called by our assembly stub
 void irq_handler(registers_t *r) {
     int irq = r->int_no - 32;
-    
-    if (irq == 1) {
+
+    if (irq == 0) {
+        pit_handler();  
+    } 
+    else if (irq == 1) {
         keyboard_handler(r);   // Call your dedicated keyboard handler
     }
     

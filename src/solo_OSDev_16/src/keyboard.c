@@ -4,6 +4,8 @@
 
 #define KEYBOARD_BUFFER_SIZE 256
 
+static volatile char last_keyboard_key = '\0';
+
 // Store raw keyboard scancodes
 static uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE];
 static uint8_t keyboard_buffer_index = 0;
@@ -40,9 +42,17 @@ void keyboard_handle_scancode(uint8_t scancode){
     if (scancode < 128){
         char c = keyboard_map[scancode];
 
+
+
         // Print only valid characters
         if (c != 0){
+            last_keyboard_key = c;
             terminal_putchar(c);
         }
     }
+}
+
+// Getter function for monitor
+char get_last_keyboard_key() {
+    return last_keyboard_key;
 }

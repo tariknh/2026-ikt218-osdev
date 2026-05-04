@@ -66,7 +66,14 @@ add_executable(uiaos-kernel
 	src/isr.asm
 	src/irq.c
 	src/irq.asm
+    src/memory/malloc.c
+	src/memory/memory.c
+	src/memory/memutils.c
+	src/print.c
+	src/pit.c
+	src/song_player.c
 )
+
 
 # Include directories for the kernel target
 target_include_directories(uiaos-kernel PUBLIC include)

@@ -1,4 +1,8 @@
 #include "memory.h"
+#include "terminal.h"
+
+#define KERNEL_START 0x00100000
+extern uint32_t end;
 
 uint32_t last_alloc = 0;
 uint32_t heap_end = 0;
@@ -83,18 +87,6 @@ void free(void *mem)
     alloc->status = 0;
 }
 
-// Print a 32-bit value as hexadecimal
-static void print_hex(uint32_t value)
-{
-    const char* digits = "0123456789ABCDEF";
-
-    terminal_write("0x");
-
-    for (int i = 28; i >= 0; i -= 4) {
-        uint8_t digit = (value >> i) & 0xF;
-        terminal_putchar(digits[digit]);
-    }
-}
 
 // Print current memory layout
 void print_memory_layout()
@@ -116,4 +108,38 @@ void print_memory_layout()
     terminal_write("Memory used: ");
     print_hex(memory_used);
     terminal_write("\n");
+}
+
+// Heap getter functions for memory screen
+uint32_t memory_get_heap_start() {
+    return heap_begin;
+}
+
+uint32_t memory_get_heap_current() {
+    return last_alloc;
+}
+
+uint32_t memory_get_heap_end() {
+    return heap_end;
+}
+
+uint32_t memory_get_heap_used() {
+    return memory_used;
+}
+
+uint32_t memory_get_heap_remaining() {
+    return heap_end - last_alloc;
+}
+
+// Kernel getter functions for memory screen
+uint32_t memory_get_kernel_start() {
+    return KERNEL_START;
+}
+
+uint32_t memory_get_kernel_end() {
+    return (uint32_t)&end;
+}
+
+uint32_t memory_get_kernel_size() {
+    return memory_get_kernel_end() - memory_get_kernel_start();
 }

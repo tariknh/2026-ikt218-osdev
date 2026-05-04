@@ -1,0 +1,155 @@
+#include "kbd_map.h"
+#include "terminal.h"
+#include "memory.h"
+#include "shell.h"
+#include "common.h"
+#include "mouse.h"
+#include "vga_mode13.h"
+
+
+static int shift_pressed = 0;
+// The actual table lives here
+unsigned char kbd_us[128] = {
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
+  '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',   
+    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',   0,       
+ '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0, '*',    0,       
+  ' ',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       
+    0,   0,   0,   0, '-',   0,   0,   0, '+',   0,   0,   0,   0,   0,       
+    0,   0,   0,   0,   0,   0
+};
+unsigned char kbd_us_upper[128] = {
+    0,  27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',   
+  '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',   
+    0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', '~',   0,       
+ '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',   0, '*',    0,       
+  ' ',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,       
+    0,   0,   0,   0, '-',   0,   0,   0, '+',   0,   0,   0,   0,   0,       
+    0,   0,   0,   0,   0,   0
+};
+
+// Your Buffer Logic
+char kbd_buffer[256];
+int kbd_pos = 0;
+
+
+static volatile int keyboard_locked = 0;
+
+void keyboard_flush() {
+    kbd_pos = 0;
+    kbd_buffer[0] = '\0';
+}
+
+
+void keyboard_set_lock(int locked) {
+    keyboard_locked = locked;
+    keyboard_flush();
+     __asm__ __volatile__("inb $0x60, %al");
+    
+}
+
+
+void keyboard_handler(struct registers *r) {
+
+    uint8_t scancode = inb(0x60);
+    //keyboard lock
+    if (keyboard_locked == 1) return;
+
+
+    if (scancode == 0x2A || scancode == 0x36) {
+        shift_pressed = 1;
+        return;
+    }
+
+    // Check for Shift Release (Break codes: Make + 0x80)
+
+    if (scancode == 0xAA || scancode == 0xB6) {
+        shift_pressed = 0;
+        return;
+    }
+
+    // Ignore other "Key Release" events
+    if (scancode & 0x80) {
+        return;
+    }
+
+    // Pick the right table based on state
+    char ascii;
+    if (shift_pressed) {
+        ascii = kbd_us_upper[scancode];
+    } else {
+        ascii = kbd_us[scancode];
+    }
+
+    if (scancode == SCAN_LEFT) {
+        if (kbd_pos > 0) {
+            kbd_pos--;
+            terminal_move_left();
+        }
+        return;
+    }
+
+    if (scancode == SCAN_RIGHT) {
+
+        // Only move right if there's a character to move over
+        if (kbd_buffer[kbd_pos] != '\0') {
+            kbd_pos++;
+            terminal_move_right();
+        }
+        return;
+    }
+
+
+
+    if (ascii == '\b' && kbd_pos > 0) {
+    // 1. Shift the buffer left to close the gap
+    for (int i = kbd_pos - 1; kbd_buffer[i] != '\0'; i++) {
+        kbd_buffer[i] = kbd_buffer[i + 1];
+    }
+
+    // 2. Move logic position back
+    kbd_pos--;
+
+    // 3. Move cursor back visually
+    terminal_column--;
+    
+    // 4. Redraw the line from the new cursor position to the end
+    terminal_refresh_line(&kbd_buffer[kbd_pos]);
+}
+
+    else if (ascii == '\n') {
+        kbd_buffer[kbd_pos] = '\0';
+        shell_execute_command(kbd_buffer);
+
+        kbd_pos = 0;
+        kbd_buffer[0] = '\0';                
+        return;
+    }
+
+    if (ascii != 0 && ascii != '\b' && ascii != '\n') {
+    // 1. Calculate current length to shift properly
+    int len = 0;
+    while (kbd_buffer[len] != '\0') {
+        len++;
+    }
+
+    // 2. Shift everything to the right (including the null terminator)
+    // We start from len and move down to kbd_pos
+    for (int i = len; i >= kbd_pos; i--) {
+        kbd_buffer[i + 1] = kbd_buffer[i];
+    }
+
+    // 3. Place the new character in the buffer
+    kbd_buffer[kbd_pos] = ascii;
+
+    // 4. Update the screen
+    // We print the new character and everything following it
+    terminal_refresh_line(&kbd_buffer[kbd_pos]);
+
+    // 5. Increment positions
+    kbd_pos++;
+    terminal_column++; 
+    terminal_update_cursor();
+}
+
+}

@@ -30,5 +30,9 @@ uint32_t get_current_tick();
 void pit_tick();
 void sleep_interrupt(uint32_t milliseconds);
 void sleep_busy(uint32_t milliseconds);
-#endif
 
+// Getters for monitor screen
+uint32_t get_pit_frequency();
+uint8_t get_last_keyboard_scancode();
+
+#endif

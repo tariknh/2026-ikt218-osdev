@@ -66,6 +66,7 @@ static void pic_send_eoi(unsigned char irq)
 void irq0_handler(void)
 {
     print_at("IRQ 0 timer triggered", 5);
+    pit_tick();
     pic_send_eoi(0);
 }
 

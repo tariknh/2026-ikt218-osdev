@@ -1,0 +1,23 @@
+#pragma once
+
+#include "libc/stdint.h"
+
+
+static inline void outb(uint16_t port, uint8_t value)
+{
+    __asm__ volatile ("outb %b0, %w1" : : "a"(value), "Nd"(port));
+}
+
+
+static inline uint8_t inb(uint16_t port)
+{
+    uint8_t ret;
+    __asm__ volatile ("inb %w1, %b0" : "=a"(ret) : "Nd"(port));
+    return ret;
+}
+
+
+static inline void io_wait(void)
+{
+    outb(0x80, 0x00);
+}

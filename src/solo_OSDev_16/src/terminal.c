@@ -54,3 +54,43 @@ void terminal_write(const char* data) {
         i++;
     }
 }
+
+// Print a 32-bit value as hexadecimal
+void print_hex(uint32_t value)
+{
+    const char* digits = "0123456789ABCDEF";
+
+    terminal_write("0x");
+
+    for (int i = 28; i >= 0; i -= 4) {
+        uint8_t digit = (value >> i) & 0xF;
+        terminal_putchar(digits[digit]);
+    }
+}
+
+// Print a 32-bit value as decimals
+void print_dec(uint32_t value) {
+    char buffer[10];
+    int index = 0;
+
+    if (value == 0) {
+        terminal_putchar('0');
+        return;
+    }
+
+    while (value > 0) {
+        buffer[index] = '0' + (value % 10);
+        value = value / 10;
+        index++;
+    }
+
+    while (index > 0) {
+        index--;
+        terminal_putchar(buffer[index]);
+    }
+}
+
+
+void terminal_clear() {
+    terminal_initialize();
+}

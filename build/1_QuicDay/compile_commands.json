@@ -1,0 +1,82 @@
+[
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/bin/nasm -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -f elf32 -o CMakeFiles/uiaos-kernel.dir/src/multiboot2.asm.o /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/multiboot2.asm",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/multiboot2.asm"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/kernel.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/kernel.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/kernel.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-g++ -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -g -Wno-unused-variable -Wno-unused-parameter -std=gnu++20 -o CMakeFiles/uiaos-kernel.dir/src/kernel.cpp.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/kernel.cpp",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/kernel.cpp"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/gdt/gdt.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt/gdt.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt/gdt.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/bin/nasm -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -f elf32 -o CMakeFiles/uiaos-kernel.dir/src/gdt/gdt.asm.o /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt/gdt.asm",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt/gdt.asm"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/vga/vga.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga/vga.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga/vga.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/kernel_memory.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/kernel_memory.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/kernel_memory.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/pit.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/pit.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/pit.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/stdio.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/stdio.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/stdio.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/piano.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/piano.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/piano.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/isr/isr.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr/isr.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr/isr.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/bin/nasm -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -f elf32 -o CMakeFiles/uiaos-kernel.dir/src/isr/isr.asm.o /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr/isr.asm",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr/isr.asm"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/irq/irq.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq/irq.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq/irq.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/bin/nasm -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -f elf32 -o CMakeFiles/uiaos-kernel.dir/src/irq/irq.asm.o /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq/irq.asm",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq/irq.asm"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/quicmusic/SoundPlayer.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/quicmusic/SoundPlayer.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/quicmusic/SoundPlayer.c"
+},
+{
+  "directory": "/workspaces/2026-ikt218-osdev/build/1_QuicDay",
+  "command": "/usr/local/bin/i686-elf-gcc -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/include -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/vga -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/gdt -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/isr -I/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/irq -g -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-stack-check -fno-lto -fPIE -m32 -march=i386 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -Wno-main -g -Wno-unused-variable -Wno-unused-parameter -std=gnu99 -o CMakeFiles/uiaos-kernel.dir/src/quicmusic/song.c.o -c /workspaces/2026-ikt218-osdev/src/1_QuicDay/src/quicmusic/song.c",
+  "file": "/workspaces/2026-ikt218-osdev/src/1_QuicDay/src/quicmusic/song.c"
+}
+]

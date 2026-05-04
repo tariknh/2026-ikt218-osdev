@@ -12,7 +12,7 @@ void init_pit() {
     // Tell the PIT to use channel 0, low/high byte access, mode 3, binary mode.
     outb(PIT_CMD_PORT, 0x36);       
 
-    // Send the low byte of divisor to Channel 0
+    // Send the low byte of divisor to Channel 0    
     outb(PIT_CHANNEL0_PORT, divisor & 0xFF);
 
     // Send the high byte of divisor to Channel 0
@@ -50,9 +50,14 @@ void sleep_busy(uint32_t milliseconds) {
     uint32_t elapsed_ticks = 0;
 
     while (elapsed_ticks < ticks_to_wait){
-        while (get_current_tick() == start_tick + elapsed_ticks) {
+         while ((get_current_tick() - start_tick) < ticks_to_wait) {
             // Do nothing (busy wait)
         }
         elapsed_ticks++;
     }
+}
+
+// Getters for timmer and interrupts monitor screen
+uint32_t get_pit_frequency() {
+    return TARGET_FREQUENCY;
 }

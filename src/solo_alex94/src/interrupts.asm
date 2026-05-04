@@ -1,0 +1,883 @@
+extern isr_handler
+extern irq_handler
+global isr_stub_table
+
+global isr0
+global isr1
+global isr2
+global isr3
+global isr4
+global isr5
+global isr6
+global isr7
+global isr8
+global isr9
+global isr10
+global isr11
+global isr12
+global isr13
+global isr14
+global isr15
+global isr16
+global isr17
+global isr18
+global isr19
+global isr20
+global isr21
+global isr22
+global isr23
+global isr24
+global isr25
+global isr26
+global isr27
+global isr28
+global isr29
+global isr30
+global isr31
+global isr32
+global isr33
+global isr34
+global isr35
+global isr36
+global isr37
+global isr38
+global isr39
+global isr40
+global isr41
+global isr42
+global isr43
+global isr44
+global isr45
+global isr46
+global isr47
+global isr48
+global isr49
+global isr50
+global isr51
+global isr52
+global isr53
+global isr54
+global isr55
+global isr56
+global isr57
+global isr58
+global isr59
+global isr60
+global isr61
+global isr62
+global isr63
+global isr64
+global isr65
+global isr66
+global isr67
+global isr68
+global isr69
+global isr70
+global isr71
+global isr72
+global isr73
+global isr74
+global isr75
+global isr76
+global isr77
+global isr78
+global isr79
+global isr80
+global isr81
+global isr82
+global isr83
+global isr84
+global isr85
+global isr86
+global isr87
+global isr88
+global isr89
+global isr90
+global isr91
+global isr92
+global isr93
+global isr94
+global isr95
+global isr96
+global isr97
+global isr98
+global isr99
+global isr100
+global isr101
+global isr102
+global isr103
+global isr104
+global isr105
+global isr106
+global isr107
+global isr108
+global isr109
+global isr110
+global isr111
+global isr112
+global isr113
+global isr114
+global isr115
+global isr116
+global isr117
+global isr118
+global isr119
+global isr120
+global isr121
+global isr122
+global isr123
+global isr124
+global isr125
+global isr126
+global isr127
+global isr128
+global isr129
+global isr130
+global isr131
+global isr132
+global isr133
+global isr134
+global isr135
+global isr136
+global isr137
+global isr138
+global isr139
+global isr140
+global isr141
+global isr142
+global isr143
+global isr144
+global isr145
+global isr146
+global isr147
+global isr148
+global isr149
+global isr150
+global isr151
+global isr152
+global isr153
+global isr154
+global isr155
+global isr156
+global isr157
+global isr158
+global isr159
+global isr160
+global isr161
+global isr162
+global isr163
+global isr164
+global isr165
+global isr166
+global isr167
+global isr168
+global isr169
+global isr170
+global isr171
+global isr172
+global isr173
+global isr174
+global isr175
+global isr176
+global isr177
+global isr178
+global isr179
+global isr180
+global isr181
+global isr182
+global isr183
+global isr184
+global isr185
+global isr186
+global isr187
+global isr188
+global isr189
+global isr190
+global isr191
+global isr192
+global isr193
+global isr194
+global isr195
+global isr196
+global isr197
+global isr198
+global isr199
+global isr200
+global isr201
+global isr202
+global isr203
+global isr204
+global isr205
+global isr206
+global isr207
+global isr208
+global isr209
+global isr210
+global isr211
+global isr212
+global isr213
+global isr214
+global isr215
+global isr216
+global isr217
+global isr218
+global isr219
+global isr220
+global isr221
+global isr222
+global isr223
+global isr224
+global isr225
+global isr226
+global isr227
+global isr228
+global isr229
+global isr230
+global isr231
+global isr232
+global isr233
+global isr234
+global isr235
+global isr236
+global isr237
+global isr238
+global isr239
+global isr240
+global isr241
+global isr242
+global isr243
+global isr244
+global isr245
+global isr246
+global isr247
+global isr248
+global isr249
+global isr250
+global isr251
+global isr252
+global isr253
+global isr254
+global isr255
+global irq0
+global irq1
+global irq2
+global irq3
+global irq4
+global irq5
+global irq6
+global irq7
+global irq8
+global irq9
+global irq10
+global irq11
+global irq12
+global irq13
+global irq14
+global irq15
+
+section .text
+bits 32
+
+%macro ISR_NOERR 1
+isr%1:
+    push dword 0
+    push dword %1
+    jmp isr_common_stub
+%endmacro
+
+%macro ISR_ERR 1
+isr%1:
+    push dword %1
+    jmp isr_common_stub
+%endmacro
+
+%macro IRQ_STUB 2
+irq%1:
+    push dword 0
+    push dword %2
+    jmp irq_common_stub
+%endmacro
+
+isr_common_stub:
+    pusha
+    mov ax, ds
+    push eax
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp
+    call isr_handler
+    add esp, 4
+
+    pop eax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    popa
+    add esp, 8
+    iret
+
+irq_common_stub:
+    pusha
+    mov ax, ds
+    push eax
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp
+    call irq_handler
+    add esp, 4
+
+    pop eax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    popa
+    add esp, 8
+    iret
+
+ISR_NOERR 0
+ISR_NOERR 1
+ISR_NOERR 2
+ISR_NOERR 3
+ISR_NOERR 4
+ISR_NOERR 5
+ISR_NOERR 6
+ISR_NOERR 7
+ISR_ERR 8
+ISR_NOERR 9
+ISR_ERR 10
+ISR_ERR 11
+ISR_ERR 12
+ISR_ERR 13
+ISR_ERR 14
+ISR_NOERR 15
+ISR_NOERR 16
+ISR_ERR 17
+ISR_NOERR 18
+ISR_NOERR 19
+ISR_NOERR 20
+ISR_NOERR 21
+ISR_NOERR 22
+ISR_NOERR 23
+ISR_NOERR 24
+ISR_NOERR 25
+ISR_NOERR 26
+ISR_NOERR 27
+ISR_NOERR 28
+ISR_NOERR 29
+ISR_NOERR 30
+ISR_NOERR 31
+ISR_NOERR 32
+ISR_NOERR 33
+ISR_NOERR 34
+ISR_NOERR 35
+ISR_NOERR 36
+ISR_NOERR 37
+ISR_NOERR 38
+ISR_NOERR 39
+ISR_NOERR 40
+ISR_NOERR 41
+ISR_NOERR 42
+ISR_NOERR 43
+ISR_NOERR 44
+ISR_NOERR 45
+ISR_NOERR 46
+ISR_NOERR 47
+ISR_NOERR 48
+ISR_NOERR 49
+ISR_NOERR 50
+ISR_NOERR 51
+ISR_NOERR 52
+ISR_NOERR 53
+ISR_NOERR 54
+ISR_NOERR 55
+ISR_NOERR 56
+ISR_NOERR 57
+ISR_NOERR 58
+ISR_NOERR 59
+ISR_NOERR 60
+ISR_NOERR 61
+ISR_NOERR 62
+ISR_NOERR 63
+ISR_NOERR 64
+ISR_NOERR 65
+ISR_NOERR 66
+ISR_NOERR 67
+ISR_NOERR 68
+ISR_NOERR 69
+ISR_NOERR 70
+ISR_NOERR 71
+ISR_NOERR 72
+ISR_NOERR 73
+ISR_NOERR 74
+ISR_NOERR 75
+ISR_NOERR 76
+ISR_NOERR 77
+ISR_NOERR 78
+ISR_NOERR 79
+ISR_NOERR 80
+ISR_NOERR 81
+ISR_NOERR 82
+ISR_NOERR 83
+ISR_NOERR 84
+ISR_NOERR 85
+ISR_NOERR 86
+ISR_NOERR 87
+ISR_NOERR 88
+ISR_NOERR 89
+ISR_NOERR 90
+ISR_NOERR 91
+ISR_NOERR 92
+ISR_NOERR 93
+ISR_NOERR 94
+ISR_NOERR 95
+ISR_NOERR 96
+ISR_NOERR 97
+ISR_NOERR 98
+ISR_NOERR 99
+ISR_NOERR 100
+ISR_NOERR 101
+ISR_NOERR 102
+ISR_NOERR 103
+ISR_NOERR 104
+ISR_NOERR 105
+ISR_NOERR 106
+ISR_NOERR 107
+ISR_NOERR 108
+ISR_NOERR 109
+ISR_NOERR 110
+ISR_NOERR 111
+ISR_NOERR 112
+ISR_NOERR 113
+ISR_NOERR 114
+ISR_NOERR 115
+ISR_NOERR 116
+ISR_NOERR 117
+ISR_NOERR 118
+ISR_NOERR 119
+ISR_NOERR 120
+ISR_NOERR 121
+ISR_NOERR 122
+ISR_NOERR 123
+ISR_NOERR 124
+ISR_NOERR 125
+ISR_NOERR 126
+ISR_NOERR 127
+ISR_NOERR 128
+ISR_NOERR 129
+ISR_NOERR 130
+ISR_NOERR 131
+ISR_NOERR 132
+ISR_NOERR 133
+ISR_NOERR 134
+ISR_NOERR 135
+ISR_NOERR 136
+ISR_NOERR 137
+ISR_NOERR 138
+ISR_NOERR 139
+ISR_NOERR 140
+ISR_NOERR 141
+ISR_NOERR 142
+ISR_NOERR 143
+ISR_NOERR 144
+ISR_NOERR 145
+ISR_NOERR 146
+ISR_NOERR 147
+ISR_NOERR 148
+ISR_NOERR 149
+ISR_NOERR 150
+ISR_NOERR 151
+ISR_NOERR 152
+ISR_NOERR 153
+ISR_NOERR 154
+ISR_NOERR 155
+ISR_NOERR 156
+ISR_NOERR 157
+ISR_NOERR 158
+ISR_NOERR 159
+ISR_NOERR 160
+ISR_NOERR 161
+ISR_NOERR 162
+ISR_NOERR 163
+ISR_NOERR 164
+ISR_NOERR 165
+ISR_NOERR 166
+ISR_NOERR 167
+ISR_NOERR 168
+ISR_NOERR 169
+ISR_NOERR 170
+ISR_NOERR 171
+ISR_NOERR 172
+ISR_NOERR 173
+ISR_NOERR 174
+ISR_NOERR 175
+ISR_NOERR 176
+ISR_NOERR 177
+ISR_NOERR 178
+ISR_NOERR 179
+ISR_NOERR 180
+ISR_NOERR 181
+ISR_NOERR 182
+ISR_NOERR 183
+ISR_NOERR 184
+ISR_NOERR 185
+ISR_NOERR 186
+ISR_NOERR 187
+ISR_NOERR 188
+ISR_NOERR 189
+ISR_NOERR 190
+ISR_NOERR 191
+ISR_NOERR 192
+ISR_NOERR 193
+ISR_NOERR 194
+ISR_NOERR 195
+ISR_NOERR 196
+ISR_NOERR 197
+ISR_NOERR 198
+ISR_NOERR 199
+ISR_NOERR 200
+ISR_NOERR 201
+ISR_NOERR 202
+ISR_NOERR 203
+ISR_NOERR 204
+ISR_NOERR 205
+ISR_NOERR 206
+ISR_NOERR 207
+ISR_NOERR 208
+ISR_NOERR 209
+ISR_NOERR 210
+ISR_NOERR 211
+ISR_NOERR 212
+ISR_NOERR 213
+ISR_NOERR 214
+ISR_NOERR 215
+ISR_NOERR 216
+ISR_NOERR 217
+ISR_NOERR 218
+ISR_NOERR 219
+ISR_NOERR 220
+ISR_NOERR 221
+ISR_NOERR 222
+ISR_NOERR 223
+ISR_NOERR 224
+ISR_NOERR 225
+ISR_NOERR 226
+ISR_NOERR 227
+ISR_NOERR 228
+ISR_NOERR 229
+ISR_NOERR 230
+ISR_NOERR 231
+ISR_NOERR 232
+ISR_NOERR 233
+ISR_NOERR 234
+ISR_NOERR 235
+ISR_NOERR 236
+ISR_NOERR 237
+ISR_NOERR 238
+ISR_NOERR 239
+ISR_NOERR 240
+ISR_NOERR 241
+ISR_NOERR 242
+ISR_NOERR 243
+ISR_NOERR 244
+ISR_NOERR 245
+ISR_NOERR 246
+ISR_NOERR 247
+ISR_NOERR 248
+ISR_NOERR 249
+ISR_NOERR 250
+ISR_NOERR 251
+ISR_NOERR 252
+ISR_NOERR 253
+ISR_NOERR 254
+ISR_NOERR 255
+
+IRQ_STUB 0, 32
+IRQ_STUB 1, 33
+IRQ_STUB 2, 34
+IRQ_STUB 3, 35
+IRQ_STUB 4, 36
+IRQ_STUB 5, 37
+IRQ_STUB 6, 38
+IRQ_STUB 7, 39
+IRQ_STUB 8, 40
+IRQ_STUB 9, 41
+IRQ_STUB 10, 42
+IRQ_STUB 11, 43
+IRQ_STUB 12, 44
+IRQ_STUB 13, 45
+IRQ_STUB 14, 46
+IRQ_STUB 15, 47
+
+section .data
+align 4
+isr_stub_table:
+    dd isr0
+    dd isr1
+    dd isr2
+    dd isr3
+    dd isr4
+    dd isr5
+    dd isr6
+    dd isr7
+    dd isr8
+    dd isr9
+    dd isr10
+    dd isr11
+    dd isr12
+    dd isr13
+    dd isr14
+    dd isr15
+    dd isr16
+    dd isr17
+    dd isr18
+    dd isr19
+    dd isr20
+    dd isr21
+    dd isr22
+    dd isr23
+    dd isr24
+    dd isr25
+    dd isr26
+    dd isr27
+    dd isr28
+    dd isr29
+    dd isr30
+    dd isr31
+    dd isr32
+    dd isr33
+    dd isr34
+    dd isr35
+    dd isr36
+    dd isr37
+    dd isr38
+    dd isr39
+    dd isr40
+    dd isr41
+    dd isr42
+    dd isr43
+    dd isr44
+    dd isr45
+    dd isr46
+    dd isr47
+    dd isr48
+    dd isr49
+    dd isr50
+    dd isr51
+    dd isr52
+    dd isr53
+    dd isr54
+    dd isr55
+    dd isr56
+    dd isr57
+    dd isr58
+    dd isr59
+    dd isr60
+    dd isr61
+    dd isr62
+    dd isr63
+    dd isr64
+    dd isr65
+    dd isr66
+    dd isr67
+    dd isr68
+    dd isr69
+    dd isr70
+    dd isr71
+    dd isr72
+    dd isr73
+    dd isr74
+    dd isr75
+    dd isr76
+    dd isr77
+    dd isr78
+    dd isr79
+    dd isr80
+    dd isr81
+    dd isr82
+    dd isr83
+    dd isr84
+    dd isr85
+    dd isr86
+    dd isr87
+    dd isr88
+    dd isr89
+    dd isr90
+    dd isr91
+    dd isr92
+    dd isr93
+    dd isr94
+    dd isr95
+    dd isr96
+    dd isr97
+    dd isr98
+    dd isr99
+    dd isr100
+    dd isr101
+    dd isr102
+    dd isr103
+    dd isr104
+    dd isr105
+    dd isr106
+    dd isr107
+    dd isr108
+    dd isr109
+    dd isr110
+    dd isr111
+    dd isr112
+    dd isr113
+    dd isr114
+    dd isr115
+    dd isr116
+    dd isr117
+    dd isr118
+    dd isr119
+    dd isr120
+    dd isr121
+    dd isr122
+    dd isr123
+    dd isr124
+    dd isr125
+    dd isr126
+    dd isr127
+    dd isr128
+    dd isr129
+    dd isr130
+    dd isr131
+    dd isr132
+    dd isr133
+    dd isr134
+    dd isr135
+    dd isr136
+    dd isr137
+    dd isr138
+    dd isr139
+    dd isr140
+    dd isr141
+    dd isr142
+    dd isr143
+    dd isr144
+    dd isr145
+    dd isr146
+    dd isr147
+    dd isr148
+    dd isr149
+    dd isr150
+    dd isr151
+    dd isr152
+    dd isr153
+    dd isr154
+    dd isr155
+    dd isr156
+    dd isr157
+    dd isr158
+    dd isr159
+    dd isr160
+    dd isr161
+    dd isr162
+    dd isr163
+    dd isr164
+    dd isr165
+    dd isr166
+    dd isr167
+    dd isr168
+    dd isr169
+    dd isr170
+    dd isr171
+    dd isr172
+    dd isr173
+    dd isr174
+    dd isr175
+    dd isr176
+    dd isr177
+    dd isr178
+    dd isr179
+    dd isr180
+    dd isr181
+    dd isr182
+    dd isr183
+    dd isr184
+    dd isr185
+    dd isr186
+    dd isr187
+    dd isr188
+    dd isr189
+    dd isr190
+    dd isr191
+    dd isr192
+    dd isr193
+    dd isr194
+    dd isr195
+    dd isr196
+    dd isr197
+    dd isr198
+    dd isr199
+    dd isr200
+    dd isr201
+    dd isr202
+    dd isr203
+    dd isr204
+    dd isr205
+    dd isr206
+    dd isr207
+    dd isr208
+    dd isr209
+    dd isr210
+    dd isr211
+    dd isr212
+    dd isr213
+    dd isr214
+    dd isr215
+    dd isr216
+    dd isr217
+    dd isr218
+    dd isr219
+    dd isr220
+    dd isr221
+    dd isr222
+    dd isr223
+    dd isr224
+    dd isr225
+    dd isr226
+    dd isr227
+    dd isr228
+    dd isr229
+    dd isr230
+    dd isr231
+    dd isr232
+    dd isr233
+    dd isr234
+    dd isr235
+    dd isr236
+    dd isr237
+    dd isr238
+    dd isr239
+    dd isr240
+    dd isr241
+    dd isr242
+    dd isr243
+    dd isr244
+    dd isr245
+    dd isr246
+    dd isr247
+    dd isr248
+    dd isr249
+    dd isr250
+    dd isr251
+    dd isr252
+    dd isr253
+    dd isr254
+    dd isr255

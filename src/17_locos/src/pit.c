@@ -1,26 +1,33 @@
 #include "pit.h"
 
+// PIT command and channel ports
 #define PIT_CMD_PORT      0x43
 #define PIT_CHANNEL0_PORT 0x40
 
+// Base clock and target tick rate
 #define PIT_BASE_FREQUENCY 1193180
 #define PIT_TARGET_HZ      1000
 #define PIT_DIVIDER        (PIT_BASE_FREQUENCY / PIT_TARGET_HZ)
 
+// Global tick counter updated from IRQ0
 static volatile uint32_t pit_ticks = 0;
 
+// Write one byte to a port
 static inline void outb(uint16_t port, uint8_t value) {
     __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
+// Return the current tick count
 uint32_t pit_get_ticks(void) {
     return pit_ticks;
 }
 
+// Advance the tick counter on every timer interrupt
 void pit_on_irq0(void) {
     pit_ticks++;
 }
 
+// Program PIT channel 0 for periodic interrupts
 void init_pit(void) {
     uint16_t divisor = (uint16_t)PIT_DIVIDER;
 
@@ -30,6 +37,7 @@ void init_pit(void) {
     outb(PIT_CHANNEL0_PORT, (uint8_t)((divisor >> 8) & 0xFF));
 }
 
+// Busy wait using the tick counter
 void sleep_busy(uint32_t milliseconds) {
     uint32_t start = pit_get_ticks();
     uint32_t target = start + milliseconds;
@@ -39,6 +47,7 @@ void sleep_busy(uint32_t milliseconds) {
     }
 }
 
+// Sleep with interrupts enabled so the CPU can halt
 void sleep_interrupt(uint32_t milliseconds) {
     uint32_t start = pit_get_ticks();
     uint32_t target = start + milliseconds;

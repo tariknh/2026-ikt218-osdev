@@ -2,11 +2,15 @@
 ; Project: LocOS
 ; Description: This file contains the assembly code to load the Global Descriptor Table (GDT) into the CPU.
 
+; Export the loader so C can call it
 global gdt_load ; Exports the symbol gdt_load so that C code can call it
 
+; Code section for the loader
 section .text ; Places the following code in executable text section
+; Build 32 bit code
 bits 32 ; Tells NASM this is 32 bit code
 
+; Load the GDT and reload segment registers
 gdt_load: ;Defines the function entry point for loading the GDT
     ; argument: pointer to gdt_ptr_t is on stack
     mov eax, [esp + 4] ; Loads the first function argument from the stack and into eax register

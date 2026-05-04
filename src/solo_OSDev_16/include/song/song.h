@@ -3,6 +3,7 @@
 #include <libc/stdint.h>
 #include "frequencies.h"
 
+
 // Define a struct to represent a single musical note
 typedef struct {
     uint32_t frequency; // The frequency of the note in Hz (e.g., A4 = 440 Hz)
@@ -31,6 +32,12 @@ void stop_sound();
 void play_song_impl(Song *song);
 void play_song(Song *song);
 
+extern Song music_1;
+extern Song music_2;
+extern Song music_3;
+extern Song music_4;
+extern Song music_5;
+extern Song music_6;
 
 static Note music_1_notes[] = {
     {E5, 250}, {R, 125}, {E5, 125}, {R, 125}, {E5, 125}, {R, 125},
@@ -47,10 +54,6 @@ static Note music_1_notes[] = {
     {R, 125}, {E5, 125}, {C5, 125}, {D5, 125}, {B4, 125}, {R, 125},
 };
 
-static Song music_1 = {
-    music_1_notes,
-    sizeof(music_1_notes) / sizeof(Note)
-};
 
 static Note music_2_notes[] = {
     {A4, 200}, {E5, 200}, {A5, 200}, {R, 100}, {A5, 200}, {A5, 200}, {Gs5, 200}, {A5, 200},
@@ -61,21 +64,11 @@ static Note music_2_notes[] = {
     {R, 100}, {E5, 200}, {R, 100}, {E5, 200}, {R, 100}, {E5, 200}, {R, 100}, {E5, 200}
 };
 
-static Song music_2 = {
-    music_2_notes,
-    sizeof(music_2_notes) / sizeof(Note)
-};
-
 static Note music_3_notes[] = {
     {E4, 200}, {E4, 200}, {F4, 200}, {G4, 200}, {G4, 200}, {F4, 200}, {E4, 200}, {D4, 200},
     {C4, 200}, {C4, 200}, {D4, 200}, {E4, 200}, {E4, 400}, {R, 200},
     {D4, 200}, {D4, 200}, {E4, 200}, {F4, 200}, {F4, 200}, {E4, 200}, {D4, 200}, {C4, 200},
     {A4, 200}, {A4, 200}, {A4, 200}, {G4, 400}
-};
-
-static Song music_3 = {
-    music_3_notes,
-    sizeof(music_3_notes) / sizeof(Note)
 };
 
 static Note music_4_notes[] = {
@@ -87,11 +80,6 @@ static Note music_4_notes[] = {
     {G4, 250}, {A4, 250}, {G4, 250}, {F4, 250}, {E4, 500}, {C4, 500},
     {C4, 500}, {G3, 500}, {C4, 1000},
     {C4, 500}, {G3, 500}, {C4, 1000}
-};
-
-static Song music_4 = {
-    music_4_notes,
-    sizeof(music_4_notes) / sizeof(Note)
 };
 
 static Note music_5_notes[] = {

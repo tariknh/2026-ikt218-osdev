@@ -19,6 +19,29 @@ static void terminal_newline(void)
     }
 }
 
+void terminal_clear(void)
+{
+    for (int row = 0; row < VGA_HEIGHT; row++) {
+        for (int column = 0; column < VGA_WIDTH; column++) {
+            int index = row * VGA_WIDTH + column;
+            video_memory[index] = (uint16_t)' ' | (uint16_t)(VGA_COLOR_WHITE_ON_BLACK << 8);
+        }
+    }
+
+    terminal_column = 0;
+    terminal_row = 0;
+}
+
+void terminal_putchar_at(char character, uint8_t color, int column, int row)
+{
+    if (column < 0 || column >= VGA_WIDTH || row < 0 || row >= VGA_HEIGHT) {
+        return;
+    }
+
+    int index = row * VGA_WIDTH + column;
+    video_memory[index] = (uint16_t)character | (uint16_t)(color << 8);
+}
+
 void terminal_write(const char *text)
 {
     int i = 0;
@@ -30,8 +53,7 @@ void terminal_write(const char *text)
             continue;
         }
 
-        int index = terminal_row * VGA_WIDTH + terminal_column;
-        video_memory[index] = (uint16_t)text[i] | (uint16_t)(VGA_COLOR_WHITE_ON_BLACK << 8);
+        terminal_putchar_at(text[i], VGA_COLOR_WHITE_ON_BLACK, terminal_column, terminal_row);
 
         terminal_column++;
 

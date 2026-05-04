@@ -3,6 +3,7 @@
 #include "terminal.h"
 #include <libc/stdbool.h>
 
+// PIT and speaker ports
 #define PIT_BASE_FREQUENCY 1193180u
 #define PIT_CMD_PORT       0x43
 #define PIT_CHANNEL2_PORT  0x42
@@ -10,8 +11,10 @@
 
 /* Ch2, lobyte/hibyte, mode 3, binary */
 #define PIT_CH2_MODE3_CMD  0xB6
+// Gap between notes in the full song player
 #define NOTE_GAP_MS         40u
 
+// Background song state
 static const struct song *bg_song = 0;
 static uint32_t bg_index = 0;
 static uint32_t bg_next_tick = 0;
@@ -19,26 +22,31 @@ static bool bg_loop = false;
 static bool bg_active = false;
 static bool bg_note_on = false;
 
+// Write one byte to a port
 static inline void outb(uint16_t port, uint8_t value) {
     __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
+// Read one byte from a port
 static inline uint8_t inb(uint16_t port) {
     uint8_t value;
     __asm__ volatile ("inb %1, %0" : "=a"(value) : "Nd"(port));
     return value;
 }
 
+// Turn on the speaker gate
 void enable_speaker(void) {
     uint8_t state = inb(SPEAKER_CTRL_PORT);
     outb(SPEAKER_CTRL_PORT, (uint8_t)(state | 0x03u));
 }
 
+// Turn off the speaker gate
 void disable_speaker(void) {
     uint8_t state = inb(SPEAKER_CTRL_PORT);
     outb(SPEAKER_CTRL_PORT, (uint8_t)(state & (uint8_t)~0x03u));
 }
 
+// Set the speaker to one frequency
 void play_sound(uint32_t frequency_hz) {
     uint8_t speaker_state;
 
@@ -66,17 +74,20 @@ void play_sound(uint32_t frequency_hz) {
     }
 }
 
+// Stop the tone on the speaker
 void stop_sound(void) {
     /* OSDev nosound(): clear bits 0 and 1. */
     uint8_t state = (uint8_t)(inb(SPEAKER_CTRL_PORT) & 0xFCu);
     outb(SPEAKER_CTRL_PORT, state);
 }
 
+// Play a full melody one note at a time
 void play_song(const struct song *song) {
     if (!song || !song->notes || song->note_count == 0u) {
         return;
     }
 
+    // Print the song name before it starts
     terminal_printf("Playing: %s (%u notes)\n", song->name, song->note_count);
     for (uint32_t i = 0; i < song->note_count; i++) {
         const struct note n = song->notes[i];
@@ -114,10 +125,12 @@ static const struct song demo_song = {
     .name = "Popcorn Theme (Simplified)"
 };
 
+// Play the built in demo song
 void play_demo_song(void) {
     play_song(&demo_song);
 }
 
+// Start a song that keeps playing in the background
 void pcspk_bg_start(const struct song *song, int loop) {
     if (!song || !song->notes || song->note_count == 0u) {
         return;
@@ -131,6 +144,7 @@ void pcspk_bg_start(const struct song *song, int loop) {
     bg_note_on = false;
 }
 
+// Update the background song state
 void pcspk_bg_update(void) {
     if (!bg_active || !bg_song) {
         return;
@@ -163,6 +177,7 @@ void pcspk_bg_update(void) {
     bg_note_on = true;
 }
 
+// Stop the background song and silence the speaker
 void pcspk_bg_stop(void) {
     bg_active = false;
     bg_note_on = false;

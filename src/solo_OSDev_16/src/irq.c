@@ -3,7 +3,22 @@
 #include "pic.h"
 #include "keyboard.h"
 #include "pit.h"
+#include "system_monitor.h"
+
 #include <libc/stdint.h>
+
+// Storing counted keybord interrupts IRQ1
+static volatile uint32_t irq1_ticks = 0;
+// Storing last used scancode by keybord, used for monitor data
+static volatile uint8_t last_keybord_scancode = 0;
+
+// Getters for the monitor
+uint32_t get_irq1_count() {
+    return irq1_ticks;
+}
+uint8_t get_last_keyboard_scancode() {
+    return last_keybord_scancode;
+}
 
 // Handle IRQ0
 void irq0_handler(void){
@@ -16,9 +31,16 @@ void irq0_handler(void){
 // Read the keyboard scancode from the PS/2 data port
 // and pass it to the keyboard handler
 void irq1_handler(void){
+    irq1_ticks++;
+
     uint8_t scancode = inb(0x60); 
+    last_keybord_scancode = scancode;
+
     keyboard_handle_scancode(scancode);
+    system_monitor_handle_input(scancode);
+
     pic_send_eoi(1);
+
 }
 
 // Handle IRQ2

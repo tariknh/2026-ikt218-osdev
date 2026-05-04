@@ -3,6 +3,7 @@
 ; Description: Assembly code for interrupt handler entry points and the lidt instruction.
 ; Each of ISR and IRQ stub saves registers and passes the vector number to C, and restores the state.
 
+; Export the loader and all interrupt stubs
 global idt_load
 global isr0
 global isr1
@@ -29,14 +30,17 @@ global isr_ignore
 extern isr_handler_c
 extern irq_handler_c
 
+; Load the IDT pointer into the CPU
 idt_load:
     mov eax, [esp+4]
     lidt [eax]
     ret
 
+; Empty handler for unused vectors
 isr_ignore:
     iretd
 
+; CPU exception stubs
 isr0:
     push dword 0
     jmp isr_common
@@ -53,6 +57,7 @@ isr48:
     push dword 0x30
     jmp isr_common
 
+; IRQ stubs after PIC remap
 irq0:
     push dword 0
     jmp irq_common
@@ -102,6 +107,7 @@ irq15:
     push dword 15
     jmp irq_common
 
+; Common ISR path that calls the C handler
 isr_common:
     pusha
     ; After pusha, the pushed vector number is at [esp+32].
@@ -112,6 +118,7 @@ isr_common:
     add esp, 4
     iretd
 
+; Common IRQ path that calls the C handler
 irq_common:
     pusha
     ; Same stack layout as isr_common: IRQ number is at [esp+32].

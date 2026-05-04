@@ -3,16 +3,11 @@
 #include "idt.h"
 #include "isr.h"
 #include "irq.h"
+#include "kernel/memory.h"
+#include "kernel/pit.h"
+#include "song/song.h"
 
-static volatile uint16_t *video = (volatile uint16_t *)0xB8000;
-
-static void print(const char *text)
-{
-    for (int i = 0; text[i] != '\0'; i++)
-    {
-        video[i] = (uint16_t)text[i] | (uint16_t)0x0F00;
-    }
-}
+extern uint32_t end;
 
 void main(void)
 {
@@ -21,7 +16,29 @@ void main(void)
     isr_init();
     irq_init();
 
-    print("GDT, IDT, ISR and IRQ loaded");
+    printf("GDT, IDT, ISR and IRQ loaded\n");
+
+    init_kernel_memory(&end);
+    init_paging();
+    print_memory_layout();
+
+    init_pit();
+
+    printf("Memory manager initialized.\n");
+
+    printf("Testing PIT sleep...\n");
+
+    printf("Sleeping busy...\n");
+    sleep_busy(1000);
+    printf("Busy sleep done.\n");
+
+    printf("Sleeping interrupt...\n");
+    sleep_interrupt(1000);
+    printf("Interrupt sleep done.\n");
+
+    printf("Testing music player...\n");
+    play_music();
+    printf("Music test finished.\n");
 
     __asm__ volatile("int $0x0");
     __asm__ volatile("int $0x1");
