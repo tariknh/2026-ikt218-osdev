@@ -288,11 +288,11 @@ int8_t tinyfs_list(void) {
 int8_t tinyfs_write_file(const char name[], const char content[]) {
     TinyFsSuperblock superblock;
     TinyFsFileEntry entries[TINYFS_MAX_FILES];
-    uint32_t size_bytes;
-    uint32_t sector_count;
-    uint32_t sector_offset;
-    uint32_t source_index;
-    int32_t entry_index;
+    uint32_t size_bytes; // Size of file being written
+    uint32_t sector_count; // Sectors needed for file being written
+    uint32_t sector_offset; // Iterator when looping thru multiple sectors
+    uint32_t source_index; // Iterator when looping thru bytes in sector
+    int32_t entry_index; // File table entry index
     uint8_t sector_buffer[ATA_SECTOR_SIZE];
 
     if (!name_is_valid(name)) {
@@ -319,24 +319,34 @@ int8_t tinyfs_write_file(const char name[], const char content[]) {
         }
     }
 
+    // Loop thru sectors
     for (sector_offset = 0U; sector_offset < sector_count; ++sector_offset) {
         buffer_clear(sector_buffer, sizeof(sector_buffer));
 
+        // For each byte in sector
         for (source_index = 0U; source_index < ATA_SECTOR_SIZE; ++source_index) {
+            
+            // Iterator for looping through bytes in file being written
             uint32_t content_index = sector_offset * ATA_SECTOR_SIZE + source_index;
+            
             if (content_index >= size_bytes) {
                 break;
             }
 
+            // Copy byte from content to buffer
             sector_buffer[source_index] = (uint8_t)content[content_index];
         }
 
+        // Write the buffer to the disk.
+        // The writes start at superblock.next_free_sector and continues from there.
         if (!ata_write_sector(superblock.next_free_sector + sector_offset, sector_buffer)) {
             return TINYFS_STATUS_DISK_ERROR;
         }
     }
 
+    // Clear the area for the file entry
     buffer_clear((uint8_t*)&entries[entry_index], sizeof(TinyFsFileEntry));
+
     entries[entry_index].used = 1U;
     entries[entry_index].start_sector = superblock.next_free_sector;
     entries[entry_index].size_bytes = size_bytes;
