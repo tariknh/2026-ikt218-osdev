@@ -19,14 +19,12 @@ if [[ ! -f "$DISK_PATH" ]]; then
     exit 1
 fi
 
-if command -v pactl >/dev/null 2>&1; then
-    pactl set-sink-volume @DEFAULT_SINK@ 5% || true
-fi
-
 echo "Starting QEMU"
 qemu-system-i386 \
   -cdrom "$KERNEL_PATH" -boot d \
   -drive file="$DISK_PATH",media=cdrom,format=raw \
   -m 64 \
+  -audiodev pa,id=pa1,server=tcp:host.docker.internal:4714,out.buffer-length=40000 \
+  -machine pcspk-audiodev=pa1 \
   -display gtk \
   -serial pty
