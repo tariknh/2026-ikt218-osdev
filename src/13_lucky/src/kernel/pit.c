@@ -1,13 +1,10 @@
+#include "arch/i386/io.h"
 #include "kernel/pit.h"
 
 #include "stdio.h"
 
 // Updated from the IRQ0 handler
 static volatile uint32_t pit_ticks = 0;
-
-static void outb(uint16_t port, uint8_t value) {
-    __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
-}
 
 void init_pit(void) {
     uint16_t divisor = PIT_DIVIDER;
@@ -18,8 +15,6 @@ void init_pit(void) {
     outb(PIT_CMD_PORT, 0x36);
     outb(PIT_CHANNEL0_PORT, (uint8_t) (divisor & 0xFF));
     outb(PIT_CHANNEL0_PORT, (uint8_t) (divisor >> 8 & 0xFF));
-
-    printf("PIT initialized at %d Hz\n", PIT_TARGET_FREQUENCY);
 }
 
 void pit_tick(void) {

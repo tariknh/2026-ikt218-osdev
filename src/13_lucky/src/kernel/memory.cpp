@@ -27,6 +27,6 @@ void operator delete[](void *ptr, size_t) noexcept {
 
 extern "C" void test_new_operator(void) {
     int *value = new int(13);
-    printf("new test: 0x%x = %d\n", value, *value);
+    printf("new operator: 0x%x = %d\n", value, *value);
     delete value;
 }

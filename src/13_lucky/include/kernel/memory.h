@@ -28,8 +28,6 @@ void *memset16(void *ptr, uint16_t value, size_t num);
 
 void init_paging();
 
-void paging_map_virtual_to_phys(uint32_t virt, uint32_t phys);
-
 void print_memory_layout();
 
 EXTERN_C_END

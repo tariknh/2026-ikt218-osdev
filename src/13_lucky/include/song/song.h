@@ -3,33 +3,31 @@
 #pragma once
 
 #include "stdbool.h"
-#include "libc/system.h"
 #include "frequencies.h"
+#include "stdint.h"
 
 #define SONG_FROM_NOTES(notes) { notes, sizeof(notes) / sizeof((notes)[0]) }
 
 // Define a struct to represent a single musical note
 typedef struct {
     uint32_t frequency; // The frequency of the note in Hz (e.g., A4 = 440 Hz)
-    uint32_t duration;  // The duration of the note in milliseconds
+    uint32_t duration; // The duration of the note in milliseconds
 } Note;
 
 // Define a struct to represent a song
 typedef struct {
-    Note* notes;        // Pointer to an array of Note structs representing the song
-    uint32_t length;    // The number of notes in the song
+    Note *notes; // Pointer to an array of Note structs representing the song
+    uint32_t length; // The number of notes in the song
 } Song;
 
 // Define a struct to represent a song player
 typedef struct {
-    void (*play_song)(Song* song); // Function pointer to a function that plays a song
+    void (*play_song)(Song *song); // Function pointer to a function that plays a song
 } SongPlayer;
 
-// Function prototype for creating a new SongPlayer instance
-// Returns a pointer to a newly created SongPlayer object
-SongPlayer* create_song_player(void);
-void play_song_impl(Song *song);
 bool play_song_until(Song *song, bool (*should_stop)(void));
+
+void play_tone(uint32_t frequency, uint32_t duration);
 
 static Note music_1[] = {
     {E5, 250}, {R, 125}, {E5, 125}, {R, 125}, {E5, 125}, {R, 125},
@@ -48,16 +46,16 @@ static Note music_1[] = {
 
 static Note starwars_theme[] = {
     // Opening phrase
-    {A4, 500}, {A4, 500}, {A4, 500}, 
-    {F4, 375}, {C5, 125}, 
-    {A4, 500}, {F4, 375}, {C5, 125}, {A4, 1000}, 
-    {E5, 500}, {E5, 500}, {E5, 500}, 
+    {A4, 500}, {A4, 500}, {A4, 500},
+    {F4, 375}, {C5, 125},
+    {A4, 500}, {F4, 375}, {C5, 125}, {A4, 1000},
+    {E5, 500}, {E5, 500}, {E5, 500},
     {F5, 375}, {C5, 125},
-    
+
     // Next phrase
-    {G4, 500}, {F4, 375}, {C5, 125}, {A4, 1000}, 
-    {A5, 500}, {A4, 375}, {A4, 125}, 
-    {A5, 500}, {G5, 375}, {F5, 125}, {E5, 125}, {D5, 125}, 
+    {G4, 500}, {F4, 375}, {C5, 125}, {A4, 1000},
+    {A5, 500}, {A4, 375}, {A4, 125},
+    {A5, 500}, {G5, 375}, {F5, 125}, {E5, 125}, {D5, 125},
     {C5, 250}, {B4, 250}, {A4, 500},
 
     // End note
@@ -67,18 +65,18 @@ static Note starwars_theme[] = {
 
 static Note battlefield_1942_theme[] = {
     // Attempt at the opening part of the Battlefield 1942 theme
-    {E4, 500}, {G4, 500}, {B4, 300}, {E5, 200}, 
-    {D5, 200}, {B4, 300}, {G4, 500}, {B4, 300}, 
-    {E5, 200}, {D5, 200}, {B4, 300}, {G4, 500}, 
-    {B4, 300}, {E5, 200}, {G5, 200}, {E5, 300}, 
+    {E4, 500}, {G4, 500}, {B4, 300}, {E5, 200},
+    {D5, 200}, {B4, 300}, {G4, 500}, {B4, 300},
+    {E5, 200}, {D5, 200}, {B4, 300}, {G4, 500},
+    {B4, 300}, {E5, 200}, {G5, 200}, {E5, 300},
 
     // Continue with the next part of the melody
-    {D5, 200}, {B4, 300}, {G4, 500}, {E4, 500}, 
-    {G4, 500}, {B4, 300}, {E5, 200}, {D5, 200}, 
-    {B4, 300}, {G4, 500}, {B4, 300}, {E5, 200}, 
-    {D5, 200}, {B4, 300}, {G4, 500}, {B4, 300}, 
-    {E5, 200}, {G5, 200}, {E5, 300}, {D5, 200}, 
-    {B4, 300}, {G4, 500}, 
+    {D5, 200}, {B4, 300}, {G4, 500}, {E4, 500},
+    {G4, 500}, {B4, 300}, {E5, 200}, {D5, 200},
+    {B4, 300}, {G4, 500}, {B4, 300}, {E5, 200},
+    {D5, 200}, {B4, 300}, {G4, 500}, {B4, 300},
+    {E5, 200}, {G5, 200}, {E5, 300}, {D5, 200},
+    {B4, 300}, {G4, 500},
 
     // Repeat or modify as needed
     // ...

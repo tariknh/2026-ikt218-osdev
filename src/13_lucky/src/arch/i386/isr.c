@@ -1,5 +1,8 @@
 #include "arch/i386/idt.h"
+#include "arch/i386/io.h"
+#include "arch/i386/keyboard.h"
 #include "kernel/pit.h"
+#include "stdbool.h"
 #include "stdio.h"
 #include "stdint.h"
 
@@ -11,7 +14,6 @@
 #define PIT_IRQ 32
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_IRQ 33
-#define KEYBOARD_BUFFER_SIZE 256
 
 /*
 * Interrupt Service Routines (ISR)
@@ -24,49 +26,53 @@
 extern void *isr_stub_table[];
 extern void *irq_stub_table[];
 
-// keeps the raw scancode history
-static uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE];
-static uint16_t keyboard_buffer_index = 0;
+// Keeps the raw scancode history that can be consumed later
+static volatile char keyboard_buffer[KEY_SCANCODE_COUNT];
+static volatile uint16_t keyboard_read_index = 0;
+static volatile uint16_t keyboard_write_index = 0;
 
-static void outb(uint16_t port, uint8_t value) {
-    __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
-}
-
-static uint8_t inb(uint16_t port) {
-    uint8_t value;
-    __asm__ volatile ("inb %1, %0" : "=a"(value) : "Nd"(port));
-    return value;
-}
-
-static void io_wait(void) {
-    outb(0x80, 0);
-}
-
-static const char keyboard_map[128] = {
-    0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u',
-    'i', 'o', 'p', '[', ']', '\n', 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0, '\\', 'z', 'x',
-    'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*', 0, ' '
-};
-
-static void keyboard_logger(void) {
+void keyboard_logger(void) {
     uint8_t scancode = inb(KEYBOARD_DATA_PORT);
 
-    // store both key press and key release scancodes
-    keyboard_buffer[keyboard_buffer_index] = scancode;
-    keyboard_buffer_index = (uint16_t) ((keyboard_buffer_index + 1) % KEYBOARD_BUFFER_SIZE);
-
-    if ((scancode & 0x80) != 0) {
+    if ((scancode & KEY_SCANCODE_RELEASE_FLAG) != 0) {
         return;
     }
 
-    char key = keyboard_map[scancode];
-
+    char key = KEYBOARD_SCANCODE_TO_CHAR[scancode];
     if (key != 0) {
-        putchar(key);
+        uint16_t next_write_index = (uint16_t) ((keyboard_write_index + 1) % KEY_SCANCODE_COUNT);
+
+        // Store both key press and key release scancodes
+        keyboard_buffer[keyboard_write_index] = key;
+        keyboard_write_index = next_write_index;
     }
 }
 
-static void remap_pic(void) {
+bool keyboard_try_read(char *out) {
+    if (keyboard_read_index == keyboard_write_index) {
+        return false;
+    }
+
+    if (out != 0) {
+        *out = keyboard_buffer[keyboard_read_index];
+    }
+
+    keyboard_read_index = (uint16_t) ((keyboard_read_index + 1) % KEY_SCANCODE_COUNT);
+    return true;
+}
+
+char keyboard_wait_read(void) {
+    char key = 0;
+
+    // Halt while waiting for keyboard IRQ
+    while (!keyboard_try_read(&key)) {
+        __asm__ volatile ("sti; hlt");
+    }
+
+    return key;
+}
+
+void remap_pic(void) {
     outb(PIC1_COMMAND, 0x11);
     io_wait();
     outb(PIC2_COMMAND, 0x11);

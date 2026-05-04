@@ -66,9 +66,16 @@ add_executable(lucky13-kernel
         src/kernel/memutils.c
         src/kernel/memory.cpp
         src/kernel/pit.c
+        src/kernel/song.c
+        src/kernel/apps/music_player.c
+        src/kernel/apps/pong.c
+        src/kernel/apps/matrix.c
+        src/kernel/apps/notepad.c
+        src/kernel/apps/shutdown.c
 
         src/arch/i386/gdt.c
         src/arch/i386/idt.c
+        src/arch/i386/io.c
         src/arch/i386/isr.c
         src/arch/i386/isr.asm
 
